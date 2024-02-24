@@ -1,6 +1,6 @@
 {
-  "name": "studybuddy-bot-ts",
-  "version": "1.0.0",
+  "name": "studybuddy-tutor",
+  "version": "0.1.0",
   "description": "",
   "main": "index.js",
   "scripts": {
