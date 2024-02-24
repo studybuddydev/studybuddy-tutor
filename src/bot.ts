@@ -3,18 +3,15 @@ import 'dotenv/config'
 import getIcsUri from './calendar';
 import ical from 'node-ical';
 import { get } from 'http';
-
-import OpenAI from "openai";
-// Load the environment variables from the .env file.
-const openai = new OpenAI();
-const BOT_TOKEN = process.env.BOT_TOKEN
 import { CatClient } from 'ccat-api'
+import OpenAI from "openai";
 
-
+// Load the environment variables from the .env file.
+const BOT_TOKEN = process.env.BOT_TOKEN
 const { URL, PORT, AUTH_KEY, CHAT_ACCESS } = process.env
 
-console.log(URL, PORT, AUTH_KEY, CHAT_ACCESS)
 
+const openai = new OpenAI();
 const cat = new CatClient({
 	baseUrl: URL as any,
   user: 'user',
@@ -77,7 +74,7 @@ bot.command("image", async (ctx) => {
       ctx.reply('spending 4 cent to generate this image, please wait...')
 
         const response = await openai.images.generate({
-            model: "dall-e-2",
+            model: "dall-e-3",
             prompt: user_prompt,
             n: 1,
             size: "1024x1024",
@@ -111,7 +108,26 @@ bot.on('message', ctx => {
 
 
   cat.send(msg)
-  cat.onMessage(res => ctx.reply(res.content))
+  let accumulatedText = '';
+
+  // cat.onMessage(res => {
+  //     // Assuming 'END' is the token indicating the end of the text generation
+  //     if (res.content === '.') {
+  //         ctx.reply(accumulatedText);
+  //         accumulatedText = ''; // Reset the accumulated text for the next generation
+  //     } else {
+  //         accumulatedText += res.content; // Accumulate the text
+  //     }
+  // });
+   ctx.replyWithChatAction('typing')
+    cat.onMessage(res => {
+      // Assuming 'END' is the token indicating the end of the text generation
+      
+      if(res.type === 'chat'){
+        ctx.reply(res.content);
+      }
+      
+  });
 })
 
 
