@@ -1,4 +1,4 @@
-import { Bot, Context, session } from "grammy";
+import { Bot, Context, session, Keyboard } from "grammy";
 import {
   type Conversation,
   type ConversationFlavor,
@@ -31,10 +31,17 @@ const cat = new CatClient({
 })
 
 // create bot
+interface ReviewLesson {
+  attendance: boolean;
+  title: string;
+  description?: string;
+}
+
 const bot = new Bot<MyContext>(BOT_TOKEN as string); 
 bot.use(session({ initial: () => ({}) }));
 bot.use(conversations());
 bot.use(createConversation(addcalendario)); 
+bot.use(createConversation(reviewLesson));
 
 // calendar stuff
 interface Event {
@@ -46,7 +53,6 @@ interface Event {
   summary: string;
 }
 
-const today = new Date('2024-04-04T00:00:00.000Z')
 
 //calendars for testing
 const url = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&include=corso&txtcurr=1+-+Computational+and+theoretical+modelling+of+language+and+cognition&anno=2023&corso=0708H&anno2%5B%5D=P0407%7C1&date=14-09-2023&_lang=en&highlighted_date=0&_lang=en&all_events=1&'
@@ -55,7 +61,7 @@ const url3 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=ea
 //const url4 = 'https://calendari.unibs.it/PortaleStudenti/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+GENERALE+-+Cognomi+M-Z&anno=2023&scuola=IngegneriaMeccanicaeIndustriale&corso=05742&anno2%5B%5D=3%7C1&visualizzazione_orario=cal&date=07-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
 
 
-const calendar: [Event] = [] as any
+const calendar: Event[] = [] 
 
 
 async function getEvents(url: string) {
@@ -84,6 +90,37 @@ async function addcalendario(conversation: MyConversation, ctx: MyContext) {
   
 }
 
+
+async function reviewLesson(conversation: MyConversation, ctx: MyContext) {
+  const keyboard = new Keyboard().text("Si").text("No").resized();
+  await ctx.reply("ciao è finita la lezione di franco, sei andato?", {reply_markup: keyboard,});
+
+  const attendance = await conversation.form.text();
+  let review: ReviewLesson = {attendance: false,title: ''};
+
+  if(attendance === 'Si'){
+    await ctx.reply('bene, ora dimmi il titolo della lezione')
+    const title = await conversation.form.text();
+    await ctx.reply('ora dimmi una descrizione della lezione')
+    const description = await conversation.form.text();
+
+    review = {
+      attendance: true,
+      title: title,
+      description: description
+    }
+  }
+  else {
+    await ctx.reply('ok, mi dispiace, spero che tu stia bene')
+  }
+
+  console.log(review)
+  
+
+
+
+  
+}
 
 
 function parseEvent(rawEvent: any): Event {
@@ -143,13 +180,22 @@ async function startBot() {
 }
 
 bot.command('daily', async (ctx) => {
-  const events = await getEvents(url3)
+ // const events = await getEvents(url3)
   //console.log(events)
+
+  if( calendar.length === 0 ){
+    getEvents(url3)
+  }
+
+  
+  const today = new Date('2024-04-04T00:00:00.000Z')
+
   const todayEvents = calendar.filter(event => event.start.toDateString() === today.toDateString())
   console.log(todayEvents)
   ctx.reply('today events')
 
-  let dailyEvents = 'Buongiorno, oggi hai da fare:\n\n'
+  let dailyEvents = ""
+  dailyEvents = 'Buongiorno, oggi hai da fare:\n\n'
 
   todayEvents.forEach(event => {
 
@@ -172,6 +218,10 @@ bot.command("start", async (ctx) => {
 // add a calendar from url
 bot.command("addcalendar", async (ctx) => {
   await ctx.conversation.enter("addcalendario");
+});
+
+bot.command('review', async (ctx) => {
+  await ctx.conversation.enter("reviewLesson");
 });
 
 
