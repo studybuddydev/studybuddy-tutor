@@ -1,16 +1,27 @@
-import { Bot } from "grammy";
+import { Bot, Context, session } from "grammy";
+import {
+  type Conversation,
+  type ConversationFlavor,
+  conversations,
+  createConversation,
+} from "@grammyjs/conversations";
 import 'dotenv/config'
 import getIcsUri from './calendar';
 import ical from 'node-ical';
-import { get } from 'http';
 import { CatClient } from 'ccat-api'
 import OpenAI from "openai";
+import { get } from 'http';
+
+
 
 // Load the environment variables from the .env file.
-const BOT_TOKEN = process.env.BOT_TOKEN
-const { URL, PORT, AUTH_KEY, CHAT_ACCESS } = process.env
 
+type MyContext = Context & ConversationFlavor;
+type MyConversation = Conversation<MyContext>;
 
+const { URL, PORT, AUTH_KEY, BOT_TOKEN } = process.env
+
+// AI stuff
 const openai = new OpenAI();
 const cat = new CatClient({
 	baseUrl: URL as any,
@@ -19,58 +30,165 @@ const cat = new CatClient({
     authKey: AUTH_KEY,
 })
 
+// create bot
+const bot = new Bot<MyContext>(BOT_TOKEN as string); 
+bot.use(session({ initial: () => ({}) }));
+bot.use(conversations());
+bot.use(createConversation(addcalendario)); 
 
+// calendar stuff
+interface Event {
+  id: string;
+  room: string;
+  department: string;
+  start: Date;
+  end: Date;
+  summary: string;
+}
 
+const today = new Date('2024-04-04T00:00:00.000Z')
 
+//calendars for testing
 const url = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&include=corso&txtcurr=1+-+Computational+and+theoretical+modelling+of+language+and+cognition&anno=2023&corso=0708H&anno2%5B%5D=P0407%7C1&date=14-09-2023&_lang=en&highlighted_date=0&_lang=en&all_events=1&'
+const url2 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=2+-+Economics+and+Management&anno=2023&corso=0117G&anno2%5B%5D=P0201%7C2&date=25-02-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0'
+const url3 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+Scienze+e+Tecnologie+Informatiche&anno=2023&corso=0514G&anno2%5B%5D=P0405%7C1&date=01-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
+//const url4 = 'https://calendari.unibs.it/PortaleStudenti/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+GENERALE+-+Cognomi+M-Z&anno=2023&scuola=IngegneriaMeccanicaeIndustriale&corso=05742&anno2%5B%5D=3%7C1&visualizzazione_orario=cal&date=07-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
 
-async function getEvents() {
-    const uri:string = getIcsUri(url) as any
 
-    const events = await ical.async.fromURL(uri)
-    console.log(events)
+const calendar: [Event] = [] as any
+
+
+async function getEvents(url: string) {
+    const uri:string = getIcsUri(url3) as any         // get the ics from the url from university website 
+    const events = await ical.async.fromURL(uri)     // parse the ics file
+
+
+    for (const event in events) {
+      if(events[event].type === 'VEVENT'){
+        calendar.push(parseEvent(events[event]))
+      }
+    }
+
+
+ 
+    console.log(calendar)
     return events
 }
-async function main() {   
 
-    getEvents()
+
+async function addcalendario(conversation: MyConversation, ctx: MyContext) {
+  await ctx.reply("mandami l'url del calendario");
+  const url = await conversation.form.url();
+
+  getEvents(url.href)
+  
 }
 
-async function greeting(conversation: any, ctx: any) {
-    await ctx.reply("Hi there! What is your name?");
-    const { message } = await conversation.wait();
-    await ctx.reply(`Welcome to the chat, ${message.text}!`);
+
+
+function parseEvent(rawEvent: any): Event {
+  const regex = /(\d+)([^[]*)(\[.*?\])/;
+
+
+  //console.log(rawEvent.uid)
+
+  const eventString = rawEvent['uid'] as string;
+  const match = eventString.match(regex);
+
+  let event: Event = {
+    id: '',
+    room: '',
+    department: '',
+    start: new Date(),
+    end: new Date(),
+    summary: ''
   }
 
-// Create an instance of the `Bot` class and pass your bot token to it.
-const bot = new Bot(BOT_TOKEN as string); // <-- put your bot token between the ""
+  if (match) {
+    event.id = match[1];
+    event.room = match[2];
+    event.department = match[3].replace(/[\[\]@]/g, ''); // Remove brackets and '@'
+    event.start = rawEvent.start;
+    event.end = rawEvent.end;
+    event.summary = rawEvent.summary;
+    return event;
 
-async function addcalendario(ctx: any) {
-    ctx.conversation.log('addcalendario')
-    getEvents()
+  } else {
+    console.log('error with ', eventString) 
+    return event;
+  }
 }
+
+// Example usage
+
+
+
+// Create an instance of the `Bot` class and pass your bot token to it.
+
+async function startBot() {
+
+  await bot.api.setMyCommands([
+    { command: "start", description: "Start the bot" },
+    { command: "help", description: "debug stuff" },
+    { command: "addcalendar", description: "add un calendar" },
+    { command: "getevents", description: "get events from calendar" },
+    { command: "image", description: "generate image from prompt" },
+    { command: "daily", description: "get daily events from the clandar" },
+  ]);
+
+
+
+  // Start the bot
+  bot.start();
+}
+
+bot.command('daily', async (ctx) => {
+  const events = await getEvents(url3)
+  //console.log(events)
+  const todayEvents = calendar.filter(event => event.start.toDateString() === today.toDateString())
+  console.log(todayEvents)
+  ctx.reply('today events')
+
+  let dailyEvents = 'Buongiorno, oggi hai da fare:\n\n'
+
+  todayEvents.forEach(event => {
+
+    const start = event.start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+    dailyEvents += `${start} - ${event.summary}\n\n`
+  })
+  
+  ctx.reply(dailyEvents)
+} );
+
+
 
 
 
 // Handle the /start command.
 bot.command("start", async (ctx) => {
     await ctx.reply("ciao benvenuto nel bot di studybuddy, aggiungti caldnario /addcalendario!");
-  });
-bot.command("addcalendar", addcalendario)
+});
 
-bot.command("add", async (ctx) => {
-    // `item` will be "apple pie" if a user sends "/add apple pie".
-    const item = ctx.match;
-
-    await ctx.reply(`You want to add "${item}" to your shopping list.`);
-  });
+// add a calendar from url
+bot.command("addcalendar", async (ctx) => {
+  await ctx.conversation.enter("addcalendario");
+});
 
 
+
+bot.command("getevents", async (ctx) => {
+  const events = await getEvents(url)
+  //console.log(events)
+
+});
+
+
+// generate image from prompt
 bot.command("image", async (ctx) => {
     // `item` will be "apple pie" if a user sends "/add apple pie".
     const user_prompt = ctx.match;
 
-    if (user_prompt) {
+    if (user_prompt && (ctx.from?.id === 529895213 || ctx.from?.id === 102841323)) {
       ctx.reply('spending 4 cent to generate this image, please wait...')
 
         const response = await openai.images.generate({
@@ -83,21 +201,19 @@ bot.command("image", async (ctx) => {
       
           ctx.reply(image_url.data[0].url);
     }else {
-        ctx.reply('please insert a prompt after /image')
+        ctx.reply('please insert a prompt after /image, or you may not have the rights to do so')
     }
+});
 
+// this is for debugging
+bot.command("help", async (ctx) => {
+  console.log(ctx.from)
 
-   
+  ctx.reply('help')
 
+});
 
-  });
-  bot.command("help", async (ctx) => {
-    console.log(cat) 
-  
-  });
-  
-  
-// Handle other messages.
+// Handle normal messages. this talks with the cat
 bot.on('message', ctx => {
   const msg = ctx.message.text as string
 
@@ -106,30 +222,22 @@ bot.on('message', ctx => {
   console.log('sending message to cat')
 
 
-
+  //cat.userId = `${ctx.from?.id}`
   cat.send(msg)
-  let accumulatedText = '';
-
-  // cat.onMessage(res => {
-  //     // Assuming 'END' is the token indicating the end of the text generation
-  //     if (res.content === '.') {
-  //         ctx.reply(accumulatedText);
-  //         accumulatedText = ''; // Reset the accumulated text for the next generation
-  //     } else {
-  //         accumulatedText += res.content; // Accumulate the text
-  //     }
-  // });
-   ctx.replyWithChatAction('typing')
-    cat.onMessage(res => {
-      // Assuming 'END' is the token indicating the end of the text generation
-      
-      if(res.type === 'chat'){
-        ctx.reply(res.content);
-      }
-      
-  });
-})
+ 
+  ctx.replyWithChatAction('typing')
+  cat.onMessage(res => {
+    // Assuming 'END' is the token indicating the end of the text generation
+    
+    if(res.type === 'chat'){
+      ctx.reply(res.content);
+    }
+    
+  })
+});
 
 
 
-bot.start();
+
+
+startBot()

@@ -22,10 +22,10 @@
     "typescript": "^5.3.3"
   },
   "dependencies": {
-    "@grammyjs/conversations": "^1.1.2",
+    "@grammyjs/conversations": "^1.2.0",
     "ccat-api": "^0.9.3",
     "dotenv": "^16.3.1",
-    "grammy": "^1.19.2",
+    "grammy": "^1.21.1",
     "node-ical": "^0.16.1",
     "openai": "^4.28.0",
     "urijs": "^1.19.11"
