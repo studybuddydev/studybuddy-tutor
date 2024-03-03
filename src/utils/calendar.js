@@ -33,16 +33,13 @@ let getIcsUri = function(url){
         console.log("Error: include not found");
         return;
     }
-    let final_uri = new_uri.toString()
-      + "&dummyext.ics"; // needed for gnome-calendar and other programs taht require an .ics extension
+    let final_uri = new_uri.toString() + "&dummyext.ics"; // needed for gnome-calendar and other programs that require an .ics extension
     
     console.log("final_uri: " + final_uri);
 
   
   return final_uri;
 } // 
-
-
 
 
 

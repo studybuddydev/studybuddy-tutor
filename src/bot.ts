@@ -1,26 +1,35 @@
-import { Bot, Context, session, Keyboard, GrammyError, HttpError } from "grammy";
+import { Bot, Context, session, Keyboard, GrammyError, HttpError, InlineKeyboard, SessionFlavor } from "grammy";
+
+import { FileFlavor, hydrateFiles } from "@grammyjs/files";
+import 'dotenv/config'
+
+import { CatClient } from 'ccat-api'
+import OpenAI from "openai";
+
+import axios from 'axios';
+import fs from 'fs';
+import {getEvents, Event} from './utils/calendarhelp'
 import {
   type Conversation,
   type ConversationFlavor,
   conversations,
   createConversation,
 } from "@grammyjs/conversations";
-import { FileFlavor, hydrateFiles } from "@grammyjs/files";
-import 'dotenv/config'
-import getIcsUri from './calendar';
-import ical from 'node-ical';
-import { CatClient } from 'ccat-api'
-import OpenAI from "openai";
-import schedule from 'node-schedule';
-import axios from 'axios';
-import fs from 'fs';
+
+import { settingsKeyboard } from "./utils/keyboards";
+import { MyContext, MyConversation, ReviewLesson, SessionData } from "./utils/types";
+import { addcalendario, reviewLesson, setUpBot } from './utils/conversations';
 
 
 
 // Load the environment variables from the .env file.
+//calendars for testing
+const url = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&include=corso&txtcurr=1+-+Computational+and+theoretical+modelling+of+language+and+cognition&anno=2023&corso=0708H&anno2%5B%5D=P0407%7C1&date=14-09-2023&_lang=en&highlighted_date=0&_lang=en&all_events=1&'
+const url2 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=2+-+Economics+and+Management&anno=2023&corso=0117G&anno2%5B%5D=P0201%7C2&date=25-02-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0'
+const url3 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+Scienze+e+Tecnologie+Informatiche&anno=2023&corso=0514G&anno2%5B%5D=P0405%7C1&date=01-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
+//const url4 = 'https://calendari.unibs.it/PortaleStudenti/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+GENERALE+-+Cognomi+M-Z&anno=2023&scuola=IngegneriaMeccanicaeIndustriale&corso=05742&anno2%5B%5D=3%7C1&visualizzazione_orario=cal&date=07-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
 
-type MyContext = Context & ConversationFlavor;
-type MyConversation = Conversation<MyContext>;
+
 
 const { URL, PORT, AUTH_KEY, BOT_TOKEN } = process.env
 
@@ -33,36 +42,21 @@ const cat = new CatClient({
     authKey: AUTH_KEY,
 })
 
-// create bot
 
-interface ReviewLesson {
-  attendance: boolean;
-  title: string;
-  description?: string;
+// bot stuff
+
+function initSession(): SessionData {
+  return { preview: false, review: false, daily: false, calendar: ''};
 }
 
 const bot = new Bot<MyContext>(BOT_TOKEN as string); 
-bot.use(session({ initial: () => ({}) }));
+//bot.use(session({ initial: () => ({}) }));
+bot.use(session({ initial: () => initSession() }));
+
 bot.use(conversations());
 bot.use(createConversation(addcalendario)); 
 bot.use(createConversation(reviewLesson));
-
-// calendar stuff
-interface Event {
-  id: string;
-  room: string;
-  department: string;
-  start: Date;
-  end: Date;
-  summary: string;
-}
-
-
-//calendars for testing
-const url = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&include=corso&txtcurr=1+-+Computational+and+theoretical+modelling+of+language+and+cognition&anno=2023&corso=0708H&anno2%5B%5D=P0407%7C1&date=14-09-2023&_lang=en&highlighted_date=0&_lang=en&all_events=1&'
-const url2 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=2+-+Economics+and+Management&anno=2023&corso=0117G&anno2%5B%5D=P0201%7C2&date=25-02-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0'
-const url3 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+Scienze+e+Tecnologie+Informatiche&anno=2023&corso=0514G&anno2%5B%5D=P0405%7C1&date=01-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
-//const url4 = 'https://calendari.unibs.it/PortaleStudenti/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+GENERALE+-+Cognomi+M-Z&anno=2023&scuola=IngegneriaMeccanicaeIndustriale&corso=05742&anno2%5B%5D=3%7C1&visualizzazione_orario=cal&date=07-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
+bot.use(createConversation(setUpBot));
 
 
 const calendar: Event[] = [] 
@@ -70,121 +64,26 @@ const calendar: Event[] = []
 
 
 
-async function getEvents(url: string) {
-    let events: any = []
-
-    console.log('getting events from ', url)
-
-    if (!url.endsWith('.ics')) {  //university url 
-      url  = getIcsUri(url) as any 
-      console.log('url is not ics')
-    }
-
-
-    try {
-      events = await ical.async.fromURL(url)     // parse the ics file
-      console.log('events', events)
-    }
-    catch (err) {
-      console.log('error with url', url)
-    }
 
 
 
-    for (const event in events) {
-      if(events[event].type === 'VEVENT'){
-        calendar.push(parseEvent(events[event]))
-      } 
-    }
-
-
+ // settings Callback query handlers
+ bot.callbackQuery('preview', ctx => {
+  ctx.session.preview = !ctx.session.preview;
+  ctx.editMessageReplyMarkup({reply_markup: settingsKeyboard(ctx)});
+  
+ });
  
-    console.log(calendar)
-    return events
-}
+ bot.callbackQuery('review', ctx => {
+  ctx.session.review = !ctx.session.review;
+  ctx.editMessageReplyMarkup({reply_markup: settingsKeyboard(ctx)});
+ });
+ 
+ bot.callbackQuery('daily', ctx => {
+  ctx.session.daily = !ctx.session.daily;
+  ctx.editMessageReplyMarkup({reply_markup: settingsKeyboard(ctx)});
+ });
 
-
-async function addcalendario(conversation: MyConversation, ctx: MyContext) {
-  await ctx.reply("mandami l'url del calendario");
-  const url = await conversation.form.url();
-
-  getEvents(url.href)
-
-  
-}
-
-
-async function reviewLesson(conversation: MyConversation, ctx: MyContext) {
-  const keyboard = new Keyboard().text("Si").text("No").resized().oneTime(true);
-  await ctx.reply("ciao è finita la lezione di franco, sei andato?", {reply_markup: keyboard,});
-
-  const attendance = await conversation.form.text();
-  let review: ReviewLesson = {attendance: false,title: ''};
-
-  if(attendance === 'Si'){
-    await ctx.reply('bene, ora dimmi il titolo della lezione')
-    const title = await conversation.form.text();
-    await ctx.reply('ora dimmi una descrizione della lezione')
-    const description = await conversation.form.text();
-
-    review = {
-      attendance: true,
-      title: title,
-      description: description
-    }
-  }
-  else {
-    await ctx.reply('ok, mi dispiace, spero che tu stia bene recuperala al piu presto ')
-    review = {
-      attendance: false,
-      title: '',
-      description: ''
-    }
-  }
-
-  console.log(review)
-  
-
-
-
-  
-}
-
-
-function parseEvent(rawEvent: any): Event {
-  const regex = /(\d+)([^[]*)(\[.*?\])/;
-
-
-  //console.log(rawEvent.uid)
-
-  const eventString = rawEvent['uid'] as string;
-  const match = eventString.match(regex);
-
-  let event: Event = {
-    id: '',
-    room: '',
-    department: '',
-    start: rawEvent.start,
-    end: rawEvent.end,
-    summary: rawEvent.summary,
-  }
-
-  if (match) {
-    event.id = match[1];
-    event.room = match[2];
-    event.department = match[3].replace(/[\[\]@]/g, ''); // Remove brackets and '@'
-    event.start = rawEvent.start;
-    event.end = rawEvent.end;
-    event.summary = rawEvent.summary;
-    return event;
-
-  } else {
-    console.log('error with ', eventString) 
-    return event;
-  }
-}
-
-// Example usage
 
 
 
@@ -192,14 +91,16 @@ function parseEvent(rawEvent: any): Event {
 
 async function startBot() {
 
-  // await bot.api.setMyCommands([
-  //   { command: "start", description: "Start the bot" },
-  //   { command: "help", description: "debug stuff" },
-  //   { command: "addcalendar", description: "add un calendar" },
-  //   { command: "getevents", description: "get events from calendar" },
-  //   { command: "image", description: "generate image from prompt" },
-  //   { command: "daily", description: "get daily events from the clandar" },
-  // ]);
+  await bot.api.setMyCommands([
+    { command: "start", description: "Start the bot" },
+    { command: "help", description: "debug stuff" },
+    { command: "settings", description: "settings" },
+    { command: "review", description: "review lesson" },
+    { command: "addcalendar", description: "add un calendar" },
+    { command: "getevents", description: "get events from calendar" },
+    { command: "image", description: "generate image from prompt" },
+    { command: "daily", description: "get daily events from the clandar" },
+  ]);
 
 
   
@@ -220,6 +121,9 @@ async function startBot() {
 
   console.log("Bot is running");
 }
+
+
+
 
 bot.command('daily', async (ctx) => {
  // const events = await getEvents(url3)
@@ -254,10 +158,9 @@ bot.command('daily', async (ctx) => {
 
 
 
-
 // Handle the /start command.
 bot.command("start", async (ctx) => {
-    await ctx.reply("ciao benvenuto nel bot di studybuddy, aggiungti caldnario /addcalendario!");
+   await ctx.conversation.enter("setUpBot");
 });
 
 // add a calendar from url
@@ -268,7 +171,6 @@ bot.command("addcalendar", async (ctx) => {
 bot.command('review', async (ctx) => {
   await ctx.conversation.enter("reviewLesson");
 });
-
 
 
 bot.command("getevents", async (ctx) => {
@@ -305,6 +207,12 @@ bot.command("help", async (ctx) => {
   console.log(ctx.from)
 
   ctx.reply('help')
+
+});
+
+bot.command("settings", async (ctx) => {
+
+  ctx.reply('Settings: qui puoi scegliere se vuoi \n le preview prima della lezione,  \n review alla fine, \n daily la mattina con la task del giorno', {reply_markup: settingsKeyboard(ctx)});
 
 });
 
@@ -407,10 +315,10 @@ bot.on('message', ctx => {
 
 startBot()
 
-import https from 'https';
+// import https from 'https';
 
-const file = fs.createWriteStream("file.txt");
-const request = https.get("https://api.telegram.org/file/bot5986946687:AAF4JvOy-Kr9y-WnDdYlhdqZjHf1zD6fF4E/documents/file_9.pdf", function(response: any) {
-  console.log(response.data)
-  //response.pipe(file);
-});
+// const file = fs.createWriteStream("file.txt");
+// const request = https.get("https://api.telegram.org/file/bot5986946687:AAF4JvOy-Kr9y-WnDdYlhdqZjHf1zD6fF4E/documents/file_9.pdf", function(response: any) {
+//   console.log(response.data)
+//   //response.pipe(file);
+// });
