@@ -17,16 +17,20 @@
   "license": "ISC",
   "devDependencies": {
     "@types/node": "^20.9.3",
+    "@types/node-schedule": "^2.1.6",
     "nodemon": "^3.1.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.3.3"
   },
   "dependencies": {
     "@grammyjs/conversations": "^1.2.0",
+    "@grammyjs/files": "^1.1.0",
     "ccat-api": "^0.9.3",
     "dotenv": "^16.3.1",
     "grammy": "^1.21.1",
+    "node-fetch": "^3.3.2",
     "node-ical": "^0.16.1",
+    "node-schedule": "^2.1.1",
     "openai": "^4.28.0",
     "urijs": "^1.19.11"
   }

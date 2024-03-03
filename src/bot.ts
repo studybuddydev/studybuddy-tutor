@@ -1,16 +1,19 @@
-import { Bot, Context, session, Keyboard } from "grammy";
+import { Bot, Context, session, Keyboard, GrammyError, HttpError } from "grammy";
 import {
   type Conversation,
   type ConversationFlavor,
   conversations,
   createConversation,
 } from "@grammyjs/conversations";
+import { FileFlavor, hydrateFiles } from "@grammyjs/files";
 import 'dotenv/config'
 import getIcsUri from './calendar';
 import ical from 'node-ical';
 import { CatClient } from 'ccat-api'
 import OpenAI from "openai";
-import { get } from 'http';
+import schedule from 'node-schedule';
+import axios from 'axios';
+import fs from 'fs';
 
 
 
@@ -31,6 +34,7 @@ const cat = new CatClient({
 })
 
 // create bot
+
 interface ReviewLesson {
   attendance: boolean;
   title: string;
@@ -64,15 +68,33 @@ const url3 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=ea
 const calendar: Event[] = [] 
 
 
+
+
 async function getEvents(url: string) {
-    const uri:string = getIcsUri(url3) as any         // get the ics from the url from university website 
-    const events = await ical.async.fromURL(uri)     // parse the ics file
+    let events: any = []
+
+    console.log('getting events from ', url)
+
+    if (!url.endsWith('.ics')) {  //university url 
+      url  = getIcsUri(url) as any 
+      console.log('url is not ics')
+    }
+
+
+    try {
+      events = await ical.async.fromURL(url)     // parse the ics file
+      console.log('events', events)
+    }
+    catch (err) {
+      console.log('error with url', url)
+    }
+
 
 
     for (const event in events) {
       if(events[event].type === 'VEVENT'){
         calendar.push(parseEvent(events[event]))
-      }
+      } 
     }
 
 
@@ -87,12 +109,13 @@ async function addcalendario(conversation: MyConversation, ctx: MyContext) {
   const url = await conversation.form.url();
 
   getEvents(url.href)
+
   
 }
 
 
 async function reviewLesson(conversation: MyConversation, ctx: MyContext) {
-  const keyboard = new Keyboard().text("Si").text("No").resized();
+  const keyboard = new Keyboard().text("Si").text("No").resized().oneTime(true);
   await ctx.reply("ciao è finita la lezione di franco, sei andato?", {reply_markup: keyboard,});
 
   const attendance = await conversation.form.text();
@@ -111,7 +134,12 @@ async function reviewLesson(conversation: MyConversation, ctx: MyContext) {
     }
   }
   else {
-    await ctx.reply('ok, mi dispiace, spero che tu stia bene')
+    await ctx.reply('ok, mi dispiace, spero che tu stia bene recuperala al piu presto ')
+    review = {
+      attendance: false,
+      title: '',
+      description: ''
+    }
   }
 
   console.log(review)
@@ -136,9 +164,9 @@ function parseEvent(rawEvent: any): Event {
     id: '',
     room: '',
     department: '',
-    start: new Date(),
-    end: new Date(),
-    summary: ''
+    start: rawEvent.start,
+    end: rawEvent.end,
+    summary: rawEvent.summary,
   }
 
   if (match) {
@@ -164,19 +192,33 @@ function parseEvent(rawEvent: any): Event {
 
 async function startBot() {
 
-  await bot.api.setMyCommands([
-    { command: "start", description: "Start the bot" },
-    { command: "help", description: "debug stuff" },
-    { command: "addcalendar", description: "add un calendar" },
-    { command: "getevents", description: "get events from calendar" },
-    { command: "image", description: "generate image from prompt" },
-    { command: "daily", description: "get daily events from the clandar" },
-  ]);
+  // await bot.api.setMyCommands([
+  //   { command: "start", description: "Start the bot" },
+  //   { command: "help", description: "debug stuff" },
+  //   { command: "addcalendar", description: "add un calendar" },
+  //   { command: "getevents", description: "get events from calendar" },
+  //   { command: "image", description: "generate image from prompt" },
+  //   { command: "daily", description: "get daily events from the clandar" },
+  // ]);
 
 
-
+  
   // Start the bot
   bot.start();
+  bot.catch((err) => {
+    const ctx = err.ctx;
+    console.error(`Error while handling update ${ctx.update.update_id}:`);
+    const e = err.error;
+    if (e instanceof GrammyError) {
+      console.error("Error in request:", e.description);
+    } else if (e instanceof HttpError) {
+      console.error("Could not contact Telegram:", e);
+    } else {
+      console.error("Unknown error:", e);
+    }
+  });
+
+  console.log("Bot is running");
 }
 
 bot.command('daily', async (ctx) => {
@@ -188,11 +230,11 @@ bot.command('daily', async (ctx) => {
   }
 
   
-  const today = new Date('2024-04-04T00:00:00.000Z')
+  const today = new Date()
 
   const todayEvents = calendar.filter(event => event.start.toDateString() === today.toDateString())
   console.log(todayEvents)
-  ctx.reply('today events')
+
 
   let dailyEvents = ""
   dailyEvents = 'Buongiorno, oggi hai da fare:\n\n'
@@ -203,6 +245,9 @@ bot.command('daily', async (ctx) => {
     dailyEvents += `${start} - ${event.summary}\n\n`
   })
   
+  if (dailyEvents === 'Buongiorno, oggi hai da fare:\n\n') {
+    dailyEvents = 'Buongiorno, oggi non hai lezioni\n\n'
+  }
   ctx.reply(dailyEvents)
 } );
 
@@ -263,6 +308,74 @@ bot.command("help", async (ctx) => {
 
 });
 
+
+bot.on(":document", async (ctx) => {
+  ctx.reply('sto caricando il file')
+  console.log('bel documento')
+  const document = ctx.message?.document 
+  if (!document || !document.mime_type) {
+    ctx.reply("Non hai inviato un documento");
+    return;
+  }
+  const docfile = await ctx.getFile()
+  console.log(docfile)
+  const acceptedTypes = (await cat.api?.rabbitHole.getAllowedMimetypes())?.allowed
+  const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${docfile.file_path}`
+
+  if (!acceptedTypes?.includes(document.mime_type)) {
+    ctx.reply(`*il file \`${document?.mime_type}\` non è supportato\\!*`)
+    return
+  }
+   
+   console.log(fileUrl)
+
+
+
+
+  const formData = new FormData();
+  let blob: Blob;
+
+  try {
+
+    const response = await axios.get(url, { responseType: 'stream' });
+    const file = fs.createWriteStream('file.pdf');
+
+    response.data.pipe(file);
+    file.on('finish', () => {
+      file.close();
+      console.log('file downloaded');
+    } );
+
+
+
+    //formData.append('file', blob, 'file.pdf');
+
+    
+    //formData.append('file', blob, 'file.pdf');
+  
+
+
+    } catch (err) {
+      console.log('errore', err);
+    console.log('errore', docfile.file_path);
+    return;
+    }
+
+
+
+    //await cat.api?.rabbitHole.uploadFile({ file: formData });
+    
+    ctx.reply('file uploaded')
+
+
+    // get blob   
+
+    
+    
+   
+
+});
+
 // Handle normal messages. this talks with the cat
 bot.on('message', ctx => {
   const msg = ctx.message.text as string
@@ -290,4 +403,14 @@ bot.on('message', ctx => {
 
 
 
+
+
 startBot()
+
+import https from 'https';
+
+const file = fs.createWriteStream("file.txt");
+const request = https.get("https://api.telegram.org/file/bot5986946687:AAF4JvOy-Kr9y-WnDdYlhdqZjHf1zD6fF4E/documents/file_9.pdf", function(response: any) {
+  console.log(response.data)
+  //response.pipe(file);
+});
