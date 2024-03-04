@@ -1,16 +1,9 @@
 
 import getIcsUri from './calendar';
 import ical from 'node-ical';
+import { Event } from './types';
 
 // calendar stuff
-export interface Event {
-    id: string;
-    room: string;
-    department: string;
-    start: Date;
-    end: Date;
-    summary: string;
-}
 
 
 
@@ -27,7 +20,6 @@ export async function getEvents(url: string) {
 
     try {
         events = await ical.async.fromURL(url)     // parse the ics file
-        console.log('events', events)
     }
     catch (err) {
         console.log('error with url', url)
@@ -42,8 +34,6 @@ export async function getEvents(url: string) {
     }
 
 
-
-    console.log(calendar)
     return calendar
 }
 

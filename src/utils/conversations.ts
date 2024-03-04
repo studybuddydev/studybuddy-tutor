@@ -1,24 +1,29 @@
-import {
-    type Conversation,
-    type ConversationFlavor,
-    conversations,
-    createConversation,
-} from "@grammyjs/conversations";
-import { Bot, Context, session, Keyboard, GrammyError, HttpError, InlineKeyboard, SessionFlavor } from "grammy";
+
+import {  Keyboard } from "grammy";
 import { getEvents } from "./calendarhelp";
 import { MyContext, MyConversation, ReviewLesson } from "./types";
 import { settingsKeyboard } from "./keyboards";
 
 export async function addcalendario(conversation: MyConversation, ctx: MyContext) {
     await ctx.reply("mandami l'url del calendario");
-    const url = await conversation.form.url();
+    try {
+        const url = await conversation.form.url();
+        conversation.session.calendarUrl = url.href;
 
-    getEvents(url.href)
 
+        await ctx.reply('Fetching events from the calendar...');
+        const calendar = await getEvents(url.href);
+        conversation.session.calendar = calendar;
+
+        await ctx.reply('Aggiunti ' + calendar.length + ' eventi al calendario');
+    } catch (error) {
+        console.error('Error fetching calendar events:', error);
+        await ctx.reply('Sorry, there was an error fetching the calendar events. Please try again later.');
+    }
 
 }
 
-
+// after a lesson it asks you if you went
 export async function reviewLesson(conversation: MyConversation, ctx: MyContext) {
     const keyboard = new Keyboard().text("Si").text("No").resized().oneTime(true);
     await ctx.reply("ciao è finita la lezione di franco, sei andato?", { reply_markup: keyboard, });
@@ -48,6 +53,7 @@ export async function reviewLesson(conversation: MyConversation, ctx: MyContext)
     }
 
     console.log(review)
+    await ctx.reply('ok, grazie, lo salvo su StudyBuddy')
 
 
 }
