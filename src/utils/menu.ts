@@ -1,6 +1,9 @@
 import { Menu } from "@grammyjs/menu";import { MyContext } from './types';
 
-export const settingsMenu = new Menu<MyContext>("toggle")
+
+// settingsmenu used to handle notification of the bot
+
+export const settingsMenu = new Menu<MyContext>("settings")
   .text(
     (ctx: MyContext) => ctx.from && ctx.session.preview  ? "🔔 preview" : "🔕 preview",
     (ctx) => {
@@ -21,4 +24,10 @@ export const settingsMenu = new Menu<MyContext>("toggle")
       ctx.session.daily = !ctx.session.daily;
       ctx.menu.update(); // update the menu!
     },
-  )
+  ).row()
+  .text(
+    (ctx: MyContext) => ctx.from && ctx.session.calendarUrl ? "aggiorna calendario" : "aggiungi calendario",
+    (ctx) => {
+        ctx.conversation.enter("addcalendario");
+        ctx.menu.update(); // update the menu!
+    })
