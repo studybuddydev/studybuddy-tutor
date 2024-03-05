@@ -2,12 +2,14 @@ import { Bot, Context, session, Keyboard, GrammyError, HttpError, InlineKeyboard
 
 import { FileFlavor, hydrateFiles } from "@grammyjs/files";
 import 'dotenv/config'
+import { Readable } from 'stream';
+import FormData from 'form-data';
 
 import { CatClient } from 'ccat-api'
 import OpenAI from "openai";
 
 import axios from 'axios';
-import fs from 'fs';
+import fs, { cp } from 'fs';
 import { getEvents } from './utils/calendarhelp'
 import {
   type Conversation,
@@ -16,7 +18,10 @@ import {
   createConversation,
 } from "@grammyjs/conversations";
 
-import { settingsKeyboard } from "./utils/keyboards";
+
+import { settingsMenu } from "./utils/menu";
+
+
 import { MyContext, MyConversation, ReviewLesson, SessionData, Event } from "./utils/types";
 import { addcalendario, reviewLesson, setUpBot } from './utils/conversations';
 
@@ -48,7 +53,7 @@ const cat = new CatClient({
 // bot stuff
 
 function initSession(): SessionData {
-  return { preview: false, review: false, daily: false, calendarUrl: '' };
+  return { preview: true, review: true, daily: true, calendarUrl: '' };
 }
 
 const bot = new Bot<MyContext>(BOT_TOKEN as string);
@@ -59,30 +64,10 @@ bot.use(createConversation(addcalendario));
 bot.use(createConversation(reviewLesson));
 bot.use(createConversation(setUpBot));
 
+bot.use(settingsMenu);
+
 
 const calendar: Event[] = []
-
-
-
-
-
-// settings Callback query handlers
-bot.callbackQuery('preview', ctx => {
-  ctx.session.preview = !ctx.session.preview;
-  ctx.editMessageReplyMarkup({ reply_markup: settingsKeyboard(ctx) });
-
-});
-
-bot.callbackQuery('review', ctx => {
-  ctx.session.review = !ctx.session.review;
-  ctx.editMessageReplyMarkup({ reply_markup: settingsKeyboard(ctx) });
-});
-
-bot.callbackQuery('daily', ctx => {
-  ctx.session.daily = !ctx.session.daily;
-  ctx.editMessageReplyMarkup({ reply_markup: settingsKeyboard(ctx) });
-});
-
 
 
 
@@ -243,7 +228,7 @@ bot.command("help", async (ctx) => {
 
 bot.command("settings", async (ctx) => {
 
-  ctx.reply('Settings: qui puoi scegliere se vuoi \n le preview prima della lezione,  \n review alla fine, \n daily la mattina con la task del giorno', { reply_markup: settingsKeyboard(ctx) });
+  ctx.reply('Settings: qui puoi scegliere se vuoi \n le preview prima della lezione,  \n review alla fine, \n daily la mattina con la task del giorno', { reply_markup: settingsMenu });
 
 });
 
@@ -261,6 +246,7 @@ bot.on(":document", async (ctx) => {
   const acceptedTypes = (await cat.api?.rabbitHole.getAllowedMimetypes())?.allowed
   const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${docfile.file_path}`
 
+
   if (!acceptedTypes?.includes(document.mime_type)) {
     ctx.reply(`*il file \`${document?.mime_type}\` non è supportato\\!*`)
     return
@@ -272,37 +258,38 @@ bot.on(":document", async (ctx) => {
 
 
   const formData = new FormData();
-  let blob: Blob;
+  
+  const blob = await fetch(fileUrl).then(r => r.blob())
+  //const file = new File([blob], 'file.pdf', { type: 'application/pdf' });
 
-  try {
+  await cat.api?.rabbitHole.uploadFile({ file: blob });
 
-    const response = await axios.get(url, { responseType: 'stream' });
-    const file = fs.createWriteStream('file.pdf');
+  // try {
 
-    response.data.pipe(file);
-    file.on('finish', () => {
-      file.close();
-      console.log('file downloaded');
-    });
+  //   const response = await axios.get(url, { responseType: 'arraybuffer' });
+  //   const fileBuffer = Buffer.from(response.data, 'binary');
 
+  //   //fs.writeFileSync('/data/file.pdf', fileBuffer);
 
+  //   const fileBlob = new Blob([fileBuffer], { type: 'application/pdf' }); // Adjust the MIME type as necessary
 
-    //formData.append('file', blob, 'file.pdf');
+  //   formData.append('file', fileBuffer, {
+  //     filename: 'file.pdf', // The name of the file
+  //     contentType: 'application/pdf', // The MIME type of the file
+  //   });
+  //   await cat.api?.rabbitHole.uploadFile({ file: fileBlob });
 
-
-    //formData.append('file', blob, 'file.pdf');
-
-
-
-  } catch (err) {
-    console.log('errore', err);
-    console.log('errore', docfile.file_path);
-    return;
-  }
+  //   ctx.reply('file uploaded')
 
 
+  // } catch (err) {
+  //   console.log('errore', err);
+  //   console.log('errore', docfile.file_path);
+  //   return;
+  // }
 
-  //await cat.api?.rabbitHole.uploadFile({ file: formData });
+  
+
 
   ctx.reply('file uploaded')
 

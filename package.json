@@ -25,8 +25,10 @@
   "dependencies": {
     "@grammyjs/conversations": "^1.2.0",
     "@grammyjs/files": "^1.1.0",
+    "@grammyjs/menu": "^1.2.1",
     "ccat-api": "^0.9.3",
     "dotenv": "^16.3.1",
+    "fetch-blob": "^4.0.0",
     "grammy": "^1.21.1",
     "node-fetch": "^3.3.2",
     "node-ical": "^0.16.1",

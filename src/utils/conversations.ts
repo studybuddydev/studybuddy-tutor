@@ -2,7 +2,7 @@
 import {  Keyboard } from "grammy";
 import { getEvents } from "./calendarhelp";
 import { MyContext, MyConversation, ReviewLesson } from "./types";
-import { settingsKeyboard } from "./keyboards";
+import { settingsMenu } from './menu';
 
 export async function addcalendario(conversation: MyConversation, ctx: MyContext) {
     await ctx.reply("mandami l'url del calendario");
@@ -69,7 +69,7 @@ export async function setUpBot(conversation: MyConversation, ctx: MyContext) {
     ✅ *Review:* Ti chiederà se sei andato a lezione facendoti inserire titolo e descrizione, verrà poi salvato tutto nel tuo StudyBuddy\\. \n
     🌄 *Generare Immagini:* Ti genererà un'immagine a partire da un prompt\\. \n
     📂 *Caricare documenti:* Il tutor può leggere i tuoi documenti e imparare, potrà quindi rispondere alle tue domande, oppure generare domande a partire da un documento\\. \n 
-        puoi settare qui sotto le tue preferenze oppure piu tardi con /settings`, { parse_mode: 'MarkdownV2', reply_markup: settingsKeyboard(ctx) });
+    puoi settare qui sotto le tue preferenze oppure piu tardi con /settings`, { parse_mode: 'MarkdownV2', reply_markup: settingsMenu });
 
 
 
