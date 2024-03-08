@@ -1,21 +1,29 @@
 
 import {  Keyboard } from "grammy";
 import { getEvents } from "./calendarhelp";
-import { MyContext, MyConversation, ReviewLesson } from "./types";
+import { MyContext, MyConversation, ReviewLesson, type Event, type Calendar } from "./types";
 import { settingsMenu } from './menu';
 
 export async function addcalendario(conversation: MyConversation, ctx: MyContext) {
+    console.log('entro nella conversazione addcalendario', ctx.update.update_id)
+
     await ctx.reply("mandami l'url del calendario");
     try {
+        console.log('url')
+        let calendar : Calendar = { url: '', events: [] }
+
         const url = await conversation.form.url();
-        conversation.session.calendarUrl = url.href;
 
 
         await ctx.reply('Fetching events from the calendar...');
-        const calendar = await getEvents(url.href);
+        
+        calendar.url = url.href;
+        calendar.events = await getEvents(url.href);
+        
+
         conversation.session.calendar = calendar;
 
-        await ctx.reply('Aggiunti ' + calendar.length + ' eventi al calendario');
+       await ctx.reply('Aggiunti ' + calendar.events.length + ' eventi al calendario');
     } catch (error) {
         console.error('Error fetching calendar events:', error);
         await ctx.reply('Sorry, there was an error fetching the calendar events. Please try again later.');

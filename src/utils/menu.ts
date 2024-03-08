@@ -1,4 +1,5 @@
-import { Menu } from "@grammyjs/menu";import { MyContext } from './types';
+import { Menu } from "@grammyjs/menu";
+import { MyContext } from './types';
 
 
 // settingsmenu used to handle notification of the bot

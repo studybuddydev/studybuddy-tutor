@@ -26,6 +26,7 @@
     "@grammyjs/conversations": "^1.2.0",
     "@grammyjs/files": "^1.1.0",
     "@grammyjs/menu": "^1.2.1",
+    "@grammyjs/storage-file": "^2.4.2",
     "ccat-api": "^0.9.3",
     "dotenv": "^16.3.1",
     "fetch-blob": "^4.0.0",

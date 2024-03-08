@@ -5,15 +5,8 @@ import {
     conversations,
     createConversation,
   } from "@grammyjs/conversations";
+import { SessionData } from './session';
 
-
-export interface SessionData {
-    preview: boolean;
-    review: boolean;
-    daily: boolean;
-    calendarUrl: string;
-    calendar? : Event[];
-}
 export interface ReviewLesson {
     attendance: boolean;
     title: string;
@@ -27,6 +20,11 @@ export interface Event {
     start: Date;
     end: Date;
     summary: string;
+}
+
+export interface Calendar {
+    url: string;
+    events: Event[];
 }
 
 

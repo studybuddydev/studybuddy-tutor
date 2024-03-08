@@ -1,29 +1,16 @@
-import { Bot, Context, session, Keyboard, GrammyError, HttpError, InlineKeyboard, SessionFlavor } from "grammy";
-
-import { FileFlavor, hydrateFiles } from "@grammyjs/files";
+import { Bot, session, GrammyError, HttpError } from "grammy";
 import 'dotenv/config'
-import { Readable } from 'stream';
 import FormData from 'form-data';
-
 import { CatClient } from 'ccat-api'
 import OpenAI from "openai";
-
 import axios from 'axios';
-import fs, { cp } from 'fs';
 import { getEvents } from './utils/calendarhelp'
-import {
-  type Conversation,
-  type ConversationFlavor,
-  conversations,
-  createConversation,
-} from "@grammyjs/conversations";
-
-
+import {conversations, createConversation,} from "@grammyjs/conversations";
 import { settingsMenu } from "./utils/menu";
-
-
-import { MyContext, MyConversation, ReviewLesson, SessionData, Event } from "./utils/types";
+import { MyContext, type Event, type Calendar } from "./utils/types";
+import { SessionData, initialSession } from "./utils/session";
 import { addcalendario, reviewLesson, setUpBot } from './utils/conversations';
+import { FileAdapter } from '@grammyjs/storage-file';
 
 
 
@@ -48,23 +35,30 @@ const cat = new CatClient({
 })
 
 
-
-
 // bot stuff
-
-function initSession(): SessionData {
-  return { preview: true, review: true, daily: true, calendarUrl: '' };
-}
-
 const bot = new Bot<MyContext>(BOT_TOKEN as string);
-//bot.use(session({ initial: () => ({}) }));
-bot.use(session({ initial: () => initSession() }));
+
+// function initSession(): SessionData {
+//   return { preview: true, review: true, daily: true, calendarUrl: '' };
+// }
+
+bot.use(
+  session({
+    initial: () => initialSession(),
+    storage: new FileAdapter<SessionData>({ dirName: "sessions", }),
+  })
+);
+
+
 bot.use(conversations());
 bot.use(createConversation(addcalendario));
 bot.use(createConversation(reviewLesson));
 bot.use(createConversation(setUpBot));
 
 bot.use(settingsMenu);
+
+
+
 
 
 const calendar: Event[] = []
@@ -107,7 +101,7 @@ async function startBot() {
 }
 
 
-
+// COMMANDS  ================================================================ 
 
 bot.command('daily', async (ctx) => {
   // const events = await getEvents(url3)
@@ -142,7 +136,7 @@ bot.command('daily', async (ctx) => {
 
 
 bot.command("nextevents", async (ctx) => {
-  const calendar = ctx.session.calendar
+  const calendar: Calendar | undefined = ctx.session.calendar
 
   if (!calendar) {
     ctx.reply('non hai ancora aggiunto un calendario, /addcalendar')
@@ -151,20 +145,22 @@ bot.command("nextevents", async (ctx) => {
   }
   // sort calendar by date
   const today = new Date()
-  const nextEvents = calendar.filter(event => event.start > today)
+  const nextEvents = calendar.events.filter(event => new Date(event.start) > today);
+
+  
   console.log(nextEvents)
 
   //sort by date
-  nextEvents.sort((a, b) => a.start.getTime() - b.start.getTime())
+  //nextEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
   let nextEventsString = "I tuoi prossimi eventi:\n\n"
   // get next 3 events with date and time
   nextEvents.slice(0, 3).forEach(event => {
-    const start = event.start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
-    const end = event.end.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
-    const date = event.start.toLocaleDateString('it-IT', { weekday: 'short',day: 'numeric'});
-    nextEventsString += `${date}, ${start} - ${end} \n${event.summary}\n\n`
-  })
+    const start = new Date(event.start).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const end = new Date(event.end).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+    const date = new Date(event.start).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' });
+    nextEventsString += `${date}, ${start} - ${end} \n${event.summary}\n\n`;
+   });
 
   ctx.reply(nextEventsString)
 
@@ -181,6 +177,7 @@ bot.command("start", async (ctx) => {
 
 // add a calendar from url
 bot.command("addcalendar", async (ctx) => {
+  console.log('addcalendar')
   await ctx.conversation.enter("addcalendario");
 });
 
@@ -193,6 +190,14 @@ bot.command("getevents", async (ctx) => {
   const events = await getEvents(url)
   //console.log(events)
 
+});
+
+bot.command('buddha', async (ctx) => {
+  const url = 'https://buddha-api.com/api/random'
+  const response = await axios.get(url)
+  const text = response.data.text
+  const author = response.data.byName
+  ctx.reply(`${text}\n\n~${author}`)
 });
 
 
@@ -232,6 +237,8 @@ bot.command("settings", async (ctx) => {
 
 });
 
+
+// MESSAGES ================================================================
 
 bot.on(":document", async (ctx) => {
   ctx.reply('sto caricando il file')
@@ -302,6 +309,7 @@ bot.on(":document", async (ctx) => {
 
 });
 
+
 // Handle normal messages. this talks with the cat
 bot.on('message', ctx => {
   const msg = ctx.message.text as string
@@ -330,13 +338,4 @@ bot.on('message', ctx => {
 
 
 
-
 startBot()
-
-// import https from 'https';
-
-// const file = fs.createWriteStream("file.txt");
-// const request = https.get("https://api.telegram.org/file/bot5986946687:AAF4JvOy-Kr9y-WnDdYlhdqZjHf1zD6fF4E/documents/file_9.pdf", function(response: any) {
-//   console.log(response.data)
-//   //response.pipe(file);
-// });
