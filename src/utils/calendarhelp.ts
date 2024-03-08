@@ -1,9 +1,74 @@
 
 import getIcsUri from './calendar';
 import ical from 'node-ical';
-import { Event } from './types';
+import { Event, Calendar, MyContext } from './types';
 
 // calendar stuff
+export async  function refreshCalendar(ctx: MyContext) {
+    if (ctx.session.calendar) {
+        const events = await getEvents(ctx.session.calendar.url)
+        ctx.session.calendar.events = events
+      }
+      else {
+        ctx.conversation.enter("addcalendario");
+      }
+      
+}
+
+export function getNextEvents(calendar: Calendar) {
+
+    // sort calendar by date
+    const today = new Date()
+    const nextEvents = calendar.events.filter(event => new Date(event.start) > today);
+
+
+    console.log(nextEvents)
+
+    //sort by date
+    //nextEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
+    let nextEventsString = "I tuoi prossimi eventi:\n\n"
+    // get next 3 events with date and time
+    nextEvents.slice(0, 3).forEach(event => {
+        const start = new Date(event.start).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        const end = new Date(event.end).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
+        const date = new Date(event.start).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' });
+        nextEventsString += `${date}, ${start} - ${end} \n${event.summary}\n\n`;
+    });
+
+    if (nextEventsString === "I tuoi prossimi eventi:\n\n") {
+        nextEventsString = "Non ci sono eventi in programma\n\n";
+    }
+
+    return nextEventsString
+
+}
+
+export function getDailyEvents(calendar: Calendar) {
+
+    const today = new Date()
+
+
+
+    const todayEvents = calendar.events.filter(event => new Date(event.start).getDate() === today.getDate() && new Date(event.start).getMonth() === today.getMonth())
+    console.log(todayEvents)
+
+
+    let dailyEvents = ""
+    dailyEvents = 'Buongiorno, oggi hai da fare:\n\n'
+
+    todayEvents.forEach(event => {
+
+        const start = new Date(event.start).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
+        dailyEvents += `${start} - ${event.summary}\n\n`
+    })
+
+    if (dailyEvents === 'Buongiorno, oggi hai da fare:\n\n') {
+        dailyEvents = 'Buongiorno, oggi non hai lezioni\n\n'
+    }
+
+    return dailyEvents
+}
 
 
 
@@ -26,12 +91,13 @@ export async function getEvents(url: string) {
     }
 
 
-
     for (const event in events) {
-        if (events[event].type === 'VEVENT') {
+
+        if (events[event].type === 'VEVENT' && new Date(events[event].start) > new Date()) {
             calendar.push(parseEvent(events[event]))
         }
     }
+
 
 
     return calendar

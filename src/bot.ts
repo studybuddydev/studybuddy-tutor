@@ -4,13 +4,14 @@ import FormData from 'form-data';
 import { CatClient } from 'ccat-api'
 import OpenAI from "openai";
 import axios from 'axios';
-import { getEvents } from './utils/calendarhelp'
-import {conversations, createConversation,} from "@grammyjs/conversations";
+import { getEvents, getDailyEvents, getNextEvents, refreshCalendar } from './utils/calendarhelp'
+import { conversations, createConversation, } from "@grammyjs/conversations";
 import { settingsMenu } from "./utils/menu";
 import { MyContext, type Event, type Calendar } from "./utils/types";
 import { SessionData, initialSession } from "./utils/session";
 import { addcalendario, reviewLesson, setUpBot } from './utils/conversations';
 import { FileAdapter } from '@grammyjs/storage-file';
+import { get } from 'http';
 
 
 
@@ -106,30 +107,13 @@ async function startBot() {
 bot.command('daily', async (ctx) => {
   // const events = await getEvents(url3)
   //console.log(events)
-
-  if (ctx.session.calendarUrl) {
-    getEvents(ctx.session.calendarUrl)
+  if (!ctx.session.calendar) {
+    ctx.reply('non hai ancora aggiunto un calendario, /addcalendar')
+    return
   }
+  const dailyEvents = getDailyEvents(ctx.session.calendar)
 
 
-  const today = new Date()
-
-  const todayEvents = calendar.filter(event => event.start.toDateString() === today.toDateString())
-  console.log(todayEvents)
-
-
-  let dailyEvents = ""
-  dailyEvents = 'Buongiorno, oggi hai da fare:\n\n'
-
-  todayEvents.forEach(event => {
-
-    const start = event.start.toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' })
-    dailyEvents += `${start} - ${event.summary}\n\n`
-  })
-
-  if (dailyEvents === 'Buongiorno, oggi hai da fare:\n\n') {
-    dailyEvents = 'Buongiorno, oggi non hai lezioni\n\n'
-  }
   ctx.reply(dailyEvents)
 });
 
@@ -143,32 +127,12 @@ bot.command("nextevents", async (ctx) => {
     return
 
   }
-  // sort calendar by date
-  const today = new Date()
-  const nextEvents = calendar.events.filter(event => new Date(event.start) > today);
 
-  
-  console.log(nextEvents)
+  const nextEvents = getNextEvents(calendar)
 
-  //sort by date
-  //nextEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+  ctx.reply(nextEvents)
 
-  let nextEventsString = "I tuoi prossimi eventi:\n\n"
-  // get next 3 events with date and time
-  nextEvents.slice(0, 3).forEach(event => {
-    const start = new Date(event.start).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    const end = new Date(event.end).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
-    const date = new Date(event.start).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' });
-    nextEventsString += `${date}, ${start} - ${end} \n${event.summary}\n\n`;
-   });
 
-  if (nextEventsString === "I tuoi prossimi eventi:\n\n") {
-    nextEventsString = "Non ci sono eventi in programma\n\n";
-  }
-  
-  ctx.reply(nextEventsString)
-
-  
 
 });
 
@@ -190,9 +154,11 @@ bot.command('review', async (ctx) => {
 });
 
 
-bot.command("getevents", async (ctx) => {
-  const events = await getEvents(url)
+bot.command("refresh", async (ctx) => {
+  await refreshCalendar(ctx)
+
   //console.log(events)
+  ctx.reply('calendario aggiornato')
 
 });
 
@@ -269,7 +235,7 @@ bot.on(":document", async (ctx) => {
 
 
   const formData = new FormData();
-  
+
   const blob = await fetch(fileUrl).then(r => r.blob())
   //const file = new File([blob], 'file.pdf', { type: 'application/pdf' });
 
@@ -299,7 +265,7 @@ bot.on(":document", async (ctx) => {
   //   return;
   // }
 
-  
+
 
 
   ctx.reply('file uploaded')
