@@ -28,7 +28,7 @@ export const settingsMenu = new Menu<MyContext>("settings")
   ).row()
   .text(
     (ctx: MyContext) => ctx.from && ctx.session.calendarUrl ? "aggiorna calendario" : "aggiungi calendario",
-    (ctx) => {
-        ctx.conversation.enter("addcalendario");
-        ctx.menu.update(); // update the menu!
+    async (ctx) => {
+        await ctx.conversation.enter("addcalendario");
+        //ctx.menu.update(); // update the menu!
     })

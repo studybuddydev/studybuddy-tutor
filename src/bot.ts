@@ -75,7 +75,7 @@ async function startBot() {
     { command: "settings", description: "settings" },
     { command: "review", description: "review lesson" },
     { command: "addcalendar", description: "add un calendar" },
-    { command: "getevents", description: "get events from calendar" },
+    { command: "nextevents", description: "get next 3 events from calendar" },
     { command: "image", description: "generate image from prompt" },
     { command: "daily", description: "get daily events from the clandar" },
   ]);
@@ -162,6 +162,10 @@ bot.command("nextevents", async (ctx) => {
     nextEventsString += `${date}, ${start} - ${end} \n${event.summary}\n\n`;
    });
 
+  if (nextEventsString === "I tuoi prossimi eventi:\n\n") {
+    nextEventsString = "Non ci sono eventi in programma\n\n";
+  }
+  
   ctx.reply(nextEventsString)
 
   
