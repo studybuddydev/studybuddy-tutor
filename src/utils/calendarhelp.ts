@@ -6,8 +6,8 @@ import { Event, Calendar, MyContext } from './types';
 // calendar stuff
 export async  function refreshCalendar(ctx: MyContext) {
     if (ctx.session.calendar) {
-        const events = await getEvents(ctx.session.calendar.url)
-        ctx.session.calendar.events = events
+        const calendar = await getEvents(ctx.session.calendar.url)
+        ctx.session.calendar.events = calendar.events
       }
       else {
         ctx.conversation.enter("addcalendario");
@@ -74,7 +74,10 @@ export function getDailyEvents(calendar: Calendar) {
 
 export async function getEvents(url: string) {
     let events: any = []
-    let calendar: Event[] = []
+    let calendar: Calendar = {
+        url: url,
+        events: []
+    }
     console.log('getting events from ', url)
 
     if (!url.endsWith('.ics')) {  //university url 
@@ -90,11 +93,15 @@ export async function getEvents(url: string) {
         console.log('error with url', url)
     }
 
+    console.log('events', events)
+
 
     for (const event in events) {
 
         if (events[event].type === 'VEVENT' && new Date(events[event].start) > new Date()) {
-            calendar.push(parseEvent(events[event]))
+            calendar.events.push(parseEvent(events[event]))
+        } else if(events[event].type === 'VCALENDAR'){
+            calendar.title = events[event]['WR-CALNAME']
         }
     }
 

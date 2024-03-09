@@ -19,8 +19,7 @@ export async function addcalendario(conversation: MyConversation, ctx: MyContext
 
         await ctx.reply('Fetching events from the calendar...');
 
-        calendar.url = url.href;
-        calendar.events = await getEvents(url.href);
+        calendar =  await getEvents(url.href);
         
 
         conversation.session.calendar = calendar;

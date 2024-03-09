@@ -24,6 +24,7 @@ export interface Event {
 
 export interface Calendar {
     url: string;
+    title?: string;
     events: Event[];
 }
 
