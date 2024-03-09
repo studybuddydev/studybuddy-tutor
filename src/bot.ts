@@ -46,9 +46,9 @@ const bot = new Bot<MyContext>(BOT_TOKEN as string);
 bot.use(
   session({
     initial: () => initialSession(),
-   // storage: new FileAdapter<SessionData>({ dirName: "sessions", }),
+    storage: new FileAdapter<SessionData>({ dirName: "sessions", }),
   })
-);
+);  
 
 
 bot.use(conversations());
