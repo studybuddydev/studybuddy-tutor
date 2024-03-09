@@ -3,6 +3,8 @@ import {  Keyboard } from "grammy";
 import { getEvents } from "./calendarhelp";
 import { MyContext, MyConversation, ReviewLesson, type Event, type Calendar } from "./types";
 import { settingsMenu } from './menu';
+import fs from 'fs';
+
 
 export async function addcalendario(conversation: MyConversation, ctx: MyContext) {
     console.log('entro nella conversazione addcalendario', ctx.update.update_id)
@@ -16,7 +18,7 @@ export async function addcalendario(conversation: MyConversation, ctx: MyContext
 
 
         await ctx.reply('Fetching events from the calendar...');
-        
+
         calendar.url = url.href;
         calendar.events = await getEvents(url.href);
         
@@ -69,16 +71,11 @@ export async function reviewLesson(conversation: MyConversation, ctx: MyContext)
 export async function setUpBot(conversation: MyConversation, ctx: MyContext) {
 
 
+    const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
 
-    await ctx.reply(`*Ciao, benvenuto nel bot di StudyBuddy\\!* Il tuo tutor che ti aiuterà a studiare e a stare al passo con le lezioni\\. Il bot offre le seguenti funzionalità\\: \n
-    ❓ *Chat* Risponderà a tutte le tue domande\\. \n
-    📆 *Calendario* Aggiungi il calendario delle lezioni, e potrai ricevere ogni mattina un resoconto della giornata \\(daily\\)\\. \n
-    👀 *Preview:* Ti ricorda 30 minuti prima della lezione di dare un'occhiata al materiale\\.    \n
-    ✅ *Review:* Ti chiederà se sei andato a lezione facendoti inserire titolo e descrizione, verrà poi salvato tutto nel tuo StudyBuddy\\. \n
-    🌄 *Generare Immagini:* Ti genererà un'immagine a partire da un prompt\\. \n
-    📂 *Caricare documenti:* Il tutor può leggere i tuoi documenti e imparare, potrà quindi rispondere alle tue domande, oppure generare domande a partire da un documento\\. \n 
-    puoi settare qui sotto le tue preferenze oppure piu tardi con /settings`, { parse_mode: 'MarkdownV2', reply_markup: settingsMenu });
 
+
+    await ctx.reply(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
 
 
 }

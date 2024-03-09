@@ -32,3 +32,9 @@ export const settingsMenu = new Menu<MyContext>("settings")
         await ctx.conversation.enter("addcalendario");
         //ctx.menu.update(); // update the menu!
     })
+  .text(
+    (ctx: MyContext) => ctx.from && ctx.session.calendarUrl ? "✅ chat" : "❌ chat",
+    async (ctx) => {
+        await ctx.reply('non hai ancora aggiunto un calendario, /addcalendar')
+    })
+  
