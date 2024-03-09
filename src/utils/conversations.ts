@@ -4,14 +4,17 @@ import { getEvents } from "./calendarhelp";
 import { MyContext, MyConversation, ReviewLesson, type Event, type Calendar } from "./types";
 import { settingsMenu } from './menu';
 import fs from 'fs';
+import 'dotenv/config'
+
+
 
 
 export async function addcalendario(conversation: MyConversation, ctx: MyContext) {
-    console.log('entro nella conversazione addcalendario', ctx.update.update_id)
+    conversation.log('entro nella conversazione addcalendario', ctx.update.update_id)
 
     await ctx.reply("mandami l'url del calendario");
     try {
-        console.log('url')
+        conversation.log('url')
         let calendar : Calendar = { url: '', events: [] }
 
         const url = await conversation.form.url();
@@ -69,12 +72,25 @@ export async function reviewLesson(conversation: MyConversation, ctx: MyContext)
 
 export async function setUpBot(conversation: MyConversation, ctx: MyContext) {
 
-
     const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
-
-
-
     await ctx.reply(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+}
 
+
+export async function setRole(conversation: MyConversation, ctx: MyContext) {
+    //conversation.log('setRole')
+    await ctx.reply('inserisci la parla d\'ordine');
+    const password = await conversation.form.text();
+
+    if (password === process.env.PASSWORD_ADMIN) {
+        conversation.session.isAdmin = true;
+        conversation.session.isTester = true;
+        await ctx.reply('ruolo aggiornato, sei admin adesso');
+    } else if (password === process.env.PASSWORD_TESTER) {
+        conversation.session.isTester = true;
+        await ctx.reply('ruolo aggiornato, sei un tester');
+    }else {
+        await ctx.reply('la parola d\'ordine non è corretta');
+    }
 
 }

@@ -10,13 +10,13 @@ export const settingsMenu = new Menu<MyContext>("root-menu")
   .submenu("📆 Calendario 📆", "calendar-menu")
   .submenu("🔔 Notifiche 🔕", "notification-menu").row()
   .text(
-    (ctx: MyContext) => ctx.from && ctx.session.calendar ? "💬 chat ❌" : "💬 chat ✅",
+    (ctx: MyContext) => ctx.from && ctx.session.isTester  ?  "💬 chat ✅": "💬 chat ❌" ,
     async (ctx) => {
       await ctx.reply('per utilizzare la chat devi essere un tester certificato, contattaci')
 
     })
   .text(
-    (ctx: MyContext) => ctx.from && ctx.session.calendar ? "📁 files ❌" : "📁 files ✅",
+    (ctx: MyContext) => ctx.from && ctx.session.isTester  ?  "📁 files ✅": "📁 files ❌",
     async (ctx) => {
       await ctx.reply('entra nella waiting list per poter caricare i file')
 

@@ -9,9 +9,9 @@ import { conversations, createConversation, } from "@grammyjs/conversations";
 import { settingsMenu } from "./utils/menu";
 import { MyContext, type Event, type Calendar } from "./utils/types";
 import { SessionData, initialSession } from "./utils/session";
-import { addcalendario, reviewLesson, setUpBot } from './utils/conversations';
+import { addcalendario, reviewLesson, setUpBot, setRole } from './utils/conversations';
 import { FileAdapter } from '@grammyjs/storage-file';
-import { get } from 'http';
+
 
 
 
@@ -46,7 +46,7 @@ const bot = new Bot<MyContext>(BOT_TOKEN as string);
 bot.use(
   session({
     initial: () => initialSession(),
-    storage: new FileAdapter<SessionData>({ dirName: "sessions", }),
+   // storage: new FileAdapter<SessionData>({ dirName: "sessions", }),
   })
 );
 
@@ -55,8 +55,8 @@ bot.use(conversations());
 bot.use(createConversation(addcalendario));
 bot.use(createConversation(reviewLesson));
 bot.use(createConversation(setUpBot));
-
-bot.use(settingsMenu);
+bot.use(createConversation(setRole));
+bot.use(settingsMenu);  
 
 
 
@@ -176,7 +176,7 @@ bot.command("image", async (ctx) => {
   // `item` will be "apple pie" if a user sends "/add apple pie".
   const user_prompt = ctx.match;
 
-  if (user_prompt && (ctx.from?.id === 529895213 || ctx.from?.id === 102841323)) {
+  if (user_prompt && ctx.session.isAdmin) {
     ctx.reply('spending 4 cent to generate this image, please wait...')
 
     const response = await openai.images.generate({
@@ -204,6 +204,17 @@ bot.command("help", async (ctx) => {
 bot.command("settings", async (ctx) => {
 
   ctx.reply('Settings: qui puoi scegliere se vuoi \n le preview prima della lezione,  \n review alla fine, \n daily la mattina con la task del giorno', { reply_markup: settingsMenu });
+
+});
+
+bot.command("admin", async (ctx) => {
+  await ctx.reply('admin: ' + ctx.session.isAdmin +'\ntester: ' + ctx.session.isTester)
+
+  if (!ctx.session.isTester) {
+
+    await ctx.conversation.enter("setRole");
+  }
+  
 
 });
 
@@ -283,24 +294,25 @@ bot.on(":document", async (ctx) => {
 // Handle normal messages. this talks with the cat
 bot.on('message', ctx => {
   const msg = ctx.message.text as string
-
   if (msg.startsWith('/')) return
 
-  console.log('sending message to cat')
+  if (ctx.session.isTester) {
 
+    console.log('sending message to cat')
 
-  //cat.userId = `${ctx.from?.id}`
-  cat.send(msg)
+    //cat.userId = `${ctx.from?.id}`
+    cat.send(msg)
+    ctx.replyWithChatAction('typing')
+    cat.onMessage(res => {
 
-  ctx.replyWithChatAction('typing')
-  cat.onMessage(res => {
-    // Assuming 'END' is the token indicating the end of the text generation
+      if (res.type === 'chat') {
+        ctx.reply(res.content);
+      }
 
-    if (res.type === 'chat') {
-      ctx.reply(res.content);
-    }
-
-  })
+    })
+  } else {
+    ctx.reply('non sei un tester, contattaci per usare la chat')
+  }
 });
 
 

@@ -4,12 +4,14 @@ export interface SessionData {
     preview: boolean;
     review: boolean;
     daily: boolean;
-    calendarUrl: string;
+    isTester: boolean;
+    isAdmin: boolean;
     calendar? : Calendar;
+
 }
 
 function defaultSession(): SessionData {
-    return { preview: true, review: true, daily: true, calendarUrl: '' };
+    return { preview: true, review: true, daily: true, isTester: false, isAdmin: false};
   }
 
 export const initialSession : () => SessionData = defaultSession;
