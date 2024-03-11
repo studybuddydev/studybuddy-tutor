@@ -1,4 +1,4 @@
-import { Bot, session, GrammyError, HttpError } from "grammy";
+import { Bot, session, GrammyError, HttpError, NextFunction } from "grammy";
 import 'dotenv/config'
 import FormData from 'form-data';
 import { CatClient } from 'ccat-api'
@@ -11,7 +11,8 @@ import { MyContext, type Event, type Calendar } from "./utils/types";
 import { SessionData, initialSession } from "./utils/session";
 import { addcalendario, reviewLesson, setUpBot, setRole } from './utils/conversations';
 import { FileAdapter } from '@grammyjs/storage-file';
-
+import * as schedule from 'node-schedule';
+import { dailyEvents, dailyJobs } from './utils/notification';
 
 
 
@@ -42,13 +43,24 @@ const bot = new Bot<MyContext>(BOT_TOKEN as string);
 // function initSession(): SessionData {
 //   return { preview: true, review: true, daily: true, calendarUrl: '' };
 // }
+/** Measures the response time of the bot, and logs it to `console` */
+
+
+
+// function myMorningTask(ctx: MyContext) {
+//   console.log('Running my morning task at 9 AM');
+//   const dailyEvents = getDailyEvents(ctx.session.calendar)
+
+//   bot.api.sendMessage(5647311517,dailyEvents);
+//   // Your task logic here
+// }
 
 bot.use(
   session({
     initial: () => initialSession(),
-    storage: new FileAdapter<SessionData>({ dirName: "sessions", }),
+    storage: new FileAdapter<SessionData>({ dirName: "data/sessions", }),
   })
-);  
+);
 
 
 bot.use(conversations());
@@ -56,13 +68,31 @@ bot.use(createConversation(addcalendario));
 bot.use(createConversation(reviewLesson));
 bot.use(createConversation(setUpBot));
 bot.use(createConversation(setRole));
-bot.use(settingsMenu);  
+bot.use(settingsMenu);
+
+
+
+
+
+bot.use(dailyEvents);
+
+
+
 
 
 
 
 
 const calendar: Event[] = []
+
+
+
+
+
+// Schedule the function to run every day at 9 AM
+//const job = schedule.scheduleJob('0 19 * * *', myMorningTask);
+
+
 
 
 
@@ -115,6 +145,13 @@ bot.command('daily', async (ctx) => {
 
 
   ctx.reply(dailyEvents)
+});
+
+bot.command('jobs', async (ctx) => {
+  const jobs = dailyJobs
+  for (const job in jobs) {
+    console.log('user: ' + job + ' job: ' + jobs[job]['name'])
+  }
 });
 
 
@@ -195,7 +232,7 @@ bot.command("image", async (ctx) => {
 
 // this is for debugging
 bot.command("help", async (ctx) => {
-  console.log(ctx.session)
+  console.log(ctx.from)
 
   ctx.reply('help')
 
@@ -208,13 +245,13 @@ bot.command("settings", async (ctx) => {
 });
 
 bot.command("admin", async (ctx) => {
-  await ctx.reply('admin: ' + ctx.session.isAdmin +'\ntester: ' + ctx.session.isTester)
+  await ctx.reply('admin: ' + ctx.session.isAdmin + '\ntester: ' + ctx.session.isTester)
 
   if (!ctx.session.isTester) {
 
     await ctx.conversation.enter("setRole");
   }
-  
+
 
 });
 
