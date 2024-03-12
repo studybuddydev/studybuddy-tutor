@@ -12,7 +12,7 @@ import { SessionData, initialSession } from "./utils/session";
 import { addcalendario, reviewLesson, setUpBot, setRole } from './utils/conversations';
 import { FileAdapter } from '@grammyjs/storage-file';
 import * as schedule from 'node-schedule';
-import { dailyEvents, dailyJobs, previewEvents, previewJobs } from './utils/notification';
+import { dailyEvents, dailyJobs, previewEvents, reviewEvents, previewJobs, reviewJobs } from './utils/notification';
 
 
 
@@ -76,6 +76,7 @@ bot.use(settingsMenu);
 
 bot.use(dailyEvents);
 bot.use(previewEvents);
+bot.use(reviewEvents);
 
 
 
@@ -156,8 +157,12 @@ bot.command('jobs', async (ctx) => {
 
   for (const job in previewJobs) {
     for (const j in previewJobs[job]){
-      console.log('user: ' + job + ' job: ' + previewJobs[job][j].nextInvocation())
+      console.log('user: ' + job + ' preview job: ' + previewJobs[job][j]?.nextInvocation())
+    }}
 
+  for (const job in reviewJobs) {
+    for (const j in reviewJobs[job]){
+      console.log('user: ' + job + ' review job: ' + reviewJobs[job][j]?.nextInvocation())
     }}
 });
 
