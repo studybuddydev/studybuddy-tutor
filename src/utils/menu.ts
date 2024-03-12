@@ -7,7 +7,7 @@ import { MyContext } from './types';
 
 
 export const settingsMenu = new Menu<MyContext>("root-menu")
-  .submenu("📆 Calendario 📆", "calendar-menu")
+  .submenu( (ctx: MyContext) => ctx.from && ctx.session.calendar  ?  "📆 Calendario ✅": "📆 Calendario  ❌" , "calendar-menu")
   .submenu("🔔 Notifiche 🔕", "notification-menu").row()
   .text(
     (ctx: MyContext) => ctx.from && ctx.session.isTester  ?  "💬 chat ✅": "💬 chat ❌" ,

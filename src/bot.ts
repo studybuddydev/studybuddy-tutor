@@ -150,6 +150,9 @@ bot.command('daily', async (ctx) => {
 });
 
 bot.command('jobs', async (ctx) => {
+
+  if(!ctx.from) return
+  
   const jobs = dailyJobs
   for (const job in jobs) {
     console.log('daily: user: ' + job + ' job: ' + jobs[job]['name'])
@@ -164,6 +167,8 @@ bot.command('jobs', async (ctx) => {
     for (const j in reviewJobs[job]){
       console.log('user: ' + job + ' review job: ' + reviewJobs[job][j]?.nextInvocation())
     }}
+    console.log(previewJobs[ctx.from?.id])
+  ctx.reply( 'you have ' + previewJobs[ctx.from.id]?.length + ' preview jobs' + '\n' + 'you have ' + reviewJobs[ctx.from?.id]?.length + ' review jobs')
 });
 
 
