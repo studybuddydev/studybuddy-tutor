@@ -25,7 +25,7 @@ export function getNextEvents(calendar: Calendar) {
     console.log(nextEvents)
 
     //sort by date
-    //nextEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+    nextEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
     let nextEventsString = "I tuoi prossimi eventi:\n\n"
     // get next 3 events with date and time
@@ -52,6 +52,8 @@ export function getDailyEvents(calendar: Calendar) {
 
     const todayEvents = calendar.events.filter(event => new Date(event.start).getDate() === today.getDate() && new Date(event.start).getMonth() === today.getMonth())
     console.log(todayEvents)
+    todayEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
+
 
 
     let dailyEvents = ""
