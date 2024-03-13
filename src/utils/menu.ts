@@ -10,20 +10,32 @@ export const settingsMenu = new Menu<MyContext>("root-menu")
   .submenu( (ctx: MyContext) => ctx.from && ctx.session.calendar  ?  "📆 Calendario ✅": "📆 Calendario  ❌" , "calendar-menu")
   .submenu("🔔 Notifiche 🔕", "notification-menu").row()
   .text(
-    (ctx: MyContext) => ctx.from && ctx.session.isTester  ?  "💬 chat ✅": "💬 chat ❌" ,
+    (ctx: MyContext) => ctx.from && ctx.session.wantsChat  ?  "💬 chat ✅": "💬 chat ❌" ,
     async (ctx) => {
-      await ctx.reply('per utilizzare la chat devi essere un tester certificato, contattaci')
+      if (!ctx.session.isTester) {
+        await ctx.reply('per utilizzare la chat devi essere un tester certificato, contattaci')
+      }else {
+        ctx.session.wantsChat = !ctx.session.wantsChat;
+        ctx.menu.update(); // update the menu!
+      }
 
     })
+  .submenu( (ctx: MyContext) => ctx.from && ctx.session.wantsDocs  ?  "📁 files ✅": "📁 files ❌", "file-menu")
+
+
+const fileMenu = new Menu<MyContext>("file-menu")
   .text(
-    (ctx: MyContext) => ctx.from && ctx.session.isTester  ?  "📁 files ✅": "📁 files ❌",
+    (ctx: MyContext) => ctx.from && !ctx.session.wantsDocs  ?  "📁 entra nella waitlist 📁": "📁 sei nella waitilist ✅",
     async (ctx) => {
-      await ctx.reply('entra nella waiting list per poter caricare i file')
+      ctx.session.wantsDocs = !ctx.session.wantsDocs;
+      ctx.menu.update(); // update the menu!
+    
+    },
+  ).row()
+  .back("Go Back");
 
-    })
 
-
-
+  
 const calendarMenu = new Menu<MyContext>("calendar-menu")
   .text(
     (ctx: MyContext) => ctx.from && ctx.session.calendar ? "aggiorna calendario" : "aggiungi calendario",
@@ -68,3 +80,4 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
 
 settingsMenu.register(notificationSettings);
 settingsMenu.register(calendarMenu);
+settingsMenu.register(fileMenu);

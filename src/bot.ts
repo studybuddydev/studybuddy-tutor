@@ -350,7 +350,7 @@ bot.on('message', ctx => {
   const msg = ctx.message.text as string
   if (msg.startsWith('/')) return
 
-  if (ctx.session.isTester) {
+  if (ctx.session.wantsChat) {
 
     console.log('sending message to cat')
 
@@ -365,7 +365,7 @@ bot.on('message', ctx => {
 
     })
   } else {
-    ctx.reply('non sei un tester, contattaci per usare la chat')
+    ctx.reply('attiva la chat da /settings')
   }
 });
 
