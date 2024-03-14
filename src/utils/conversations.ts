@@ -64,7 +64,7 @@ export async function reviewLesson(conversation: MyConversation, ctx: MyContext)
         }
     }
 
-    logger.debug(review)
+
     await ctx.reply('ok, grazie, lo salvo su StudyBuddy')
 
 
