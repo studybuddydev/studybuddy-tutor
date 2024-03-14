@@ -81,3 +81,42 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
 settingsMenu.register(notificationSettings);
 settingsMenu.register(calendarMenu);
 settingsMenu.register(fileMenu);
+
+
+
+
+
+export const todoMenu = new Menu<MyContext>("todo-menu")
+  .text(
+    "ok scrivilo",
+    (ctx) => {
+      //edit message 
+      ctx.session.todo?.push(ctx.message?.text || '');
+      console.log(ctx.session.todo)
+      ctx.editMessageText('todo list aggiunta n'+ ctx.session.todo?.length )  //   }catch (e) { console.log(e)} 
+      
+    },
+  ) .text(
+    "list todo",
+    (ctx) => {
+      //edit message 
+      if (ctx.message?.text != 'todo list') {
+        //ctx.editMessageText('todo list')
+      }
+      ctx.session.preview = !ctx.session.preview;
+    },
+  )  
+  
+
+const addTodoMenu = new Menu<MyContext>("add-todo")
+
+  .text(
+    "aggiungi",
+    async (ctx) => {
+      await ctx.session.todo?.push(ctx.message?.text || '');
+    }
+  ).row()
+  .back("Go Back");
+
+
+todoMenu.register(addTodoMenu);

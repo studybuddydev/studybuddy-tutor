@@ -1,4 +1,4 @@
-import { Bot, session, GrammyError, HttpError, NextFunction } from "grammy";
+import { Bot, session, GrammyError, HttpError, NextFunction, Keyboard, InlineKeyboard } from "grammy";
 import 'dotenv/config'
 import FormData from 'form-data';
 import { CatClient } from 'ccat-api'
@@ -6,13 +6,15 @@ import OpenAI from "openai";
 import axios from 'axios';
 import { getEvents, getDailyEvents, getNextEvents, refreshCalendar } from './utils/calendarhelp'
 import { conversations, createConversation, } from "@grammyjs/conversations";
-import { settingsMenu } from "./utils/menu";
+import { settingsMenu, todoMenu } from "./utils/menu";
 import { MyContext, type Event, type Calendar } from "./utils/types";
 import { SessionData, initialSession } from "./utils/session";
-import { addcalendario, reviewLesson, setUpBot, setRole } from './utils/conversations';
+import { addcalendario, reviewLesson, setUpBot, setRole, addTodo } from './utils/conversations';
 import { FileAdapter } from '@grammyjs/storage-file';
 import * as schedule from 'node-schedule';
 import { dailyEvents, dailyJobs, previewEvents, reviewEvents, previewJobs, reviewJobs } from './utils/notification';
+import logger from 'euberlog';
+
 
 
 
@@ -68,7 +70,10 @@ bot.use(createConversation(addcalendario));
 bot.use(createConversation(reviewLesson));
 bot.use(createConversation(setUpBot));
 bot.use(createConversation(setRole));
+bot.use(createConversation(addTodo));
+
 bot.use(settingsMenu);
+bot.use(todoMenu);
 
 
 
@@ -119,18 +124,19 @@ async function startBot() {
   bot.start();
   bot.catch((err) => {
     const ctx = err.ctx;
-    console.error(`Error while handling update ${ctx.update.update_id}:`);
+    logger.error(`Error while handling update ${ctx.update.update_id}:`);
     const e = err.error;
     if (e instanceof GrammyError) {
-      console.error("Error in request:", e.description);
+      logger.error("Error in request:", e.description);
     } else if (e instanceof HttpError) {
-      console.error("Could not contact Telegram:", e);
+      logger.error("Could not contact Telegram:", e);
     } else {
-      console.error("Unknown error:", e);
+      logger.error("Unknown error:", e);
     }
   });
 
-  console.log("Bot is running");
+  //console.log("Bot is running");
+  logger.info('Bot is running')
 }
 
 
@@ -255,21 +261,56 @@ bot.command("help", async (ctx) => {
 
 });
 
+//settings 
 bot.command("settings", async (ctx) => {
 
   ctx.reply('Settings: qui puoi scegliere se vuoi \n le preview prima della lezione,  \n review alla fine, \n daily la mattina con la task del giorno', { reply_markup: settingsMenu });
 
 });
 
+//become an admin or a tester  
 bot.command("admin", async (ctx) => {
   await ctx.reply('admin: ' + ctx.session.isAdmin + '\ntester: ' + ctx.session.isTester)
 
   if (!ctx.session.isTester) {
-
     await ctx.conversation.enter("setRole");
   }
 
+});
 
+
+
+bot.command("todo", async (ctx) => {
+
+
+  const keyboard = new InlineKeyboard()
+  .text("lista todo", 'list-todo').row()
+
+  const todoKeyboard = new InlineKeyboard().text("aggiungi", "click-payload");
+
+  ctx.conversation.enter("addTodo");
+
+ 
+
+  ctx.reply( "inviami il titolod della todo ",{ reply_markup: keyboard });
+
+});
+
+bot.callbackQuery("list-todo", async (ctx) => {
+
+  
+  await ctx.answerCallbackQuery({
+    text: "scrivi il todo",
+  });
+
+  const todo: string[] = ctx.session.todo
+ 
+  ctx.reply('lista')
+
+
+
+
+  
 });
 
 

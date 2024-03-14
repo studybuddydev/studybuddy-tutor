@@ -94,3 +94,11 @@ export async function setRole(conversation: MyConversation, ctx: MyContext) {
     }
 
 }
+
+
+export async function addTodo (conversation: MyConversation, ctx: MyContext) {
+    await ctx.reply('cosa devi fare?');
+    const todo = await conversation.form.text();
+    conversation.session.todo.push(todo);
+    await ctx.reply('aggiunto alla lista');
+}
