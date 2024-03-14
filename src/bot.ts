@@ -1,127 +1,90 @@
 import { Bot, session, GrammyError, HttpError, NextFunction, Keyboard, InlineKeyboard } from "grammy";
 import 'dotenv/config'
-import FormData from 'form-data';
-import { CatClient } from 'ccat-api'
-import OpenAI from "openai";
-import axios from 'axios';
-import { getEvents, getDailyEvents, getNextEvents, refreshCalendar } from './utils/calendarhelp'
+
 import { conversations, createConversation, } from "@grammyjs/conversations";
 import { settingsMenu, todoMenu } from "./utils/menu";
-import { MyContext, type Event, type Calendar } from "./utils/types";
-import { SessionData, initialSession } from "./utils/session";
+import { MyContext} from "./utils/types";
+import { sessionMiddleware } from "./utils/session";
 import { addcalendario, reviewLesson, setUpBot, setRole, addTodo } from './utils/conversations';
-import { FileAdapter } from '@grammyjs/storage-file';
-import * as schedule from 'node-schedule';
-import { dailyEvents, dailyJobs, previewEvents, reviewEvents, previewJobs, reviewJobs } from './utils/notification';
+
+import { dailyEvents, previewEvents, reviewEvents,  } from './utils/notification';
+import * as cmd from './utils/commands'
+import * as chat from './utils/chat'
 import logger from 'euberlog';
 
 
 
 
-// Load the environment variables from the .env file.
-//calendars for testing
-const url = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&include=corso&txtcurr=1+-+Computational+and+theoretical+modelling+of+language+and+cognition&anno=2023&corso=0708H&anno2%5B%5D=P0407%7C1&date=14-09-2023&_lang=en&highlighted_date=0&_lang=en&all_events=1&'
-const url2 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=2+-+Economics+and+Management&anno=2023&corso=0117G&anno2%5B%5D=P0201%7C2&date=25-02-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0'
-const url3 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+Scienze+e+Tecnologie+Informatiche&anno=2023&corso=0514G&anno2%5B%5D=P0405%7C1&date=01-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
-//const url4 = 'https://calendari.unibs.it/PortaleStudenti/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+GENERALE+-+Cognomi+M-Z&anno=2023&scuola=IngegneriaMeccanicaeIndustriale&corso=05742&anno2%5B%5D=3%7C1&visualizzazione_orario=cal&date=07-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
-
-
-
-const { URL, PORT, AUTH_KEY, BOT_TOKEN } = process.env
-
-// AI stuff
-const openai = new OpenAI();
-const cat = new CatClient({
-  baseUrl: URL as any,
-  user: 'user',
-  port: PORT ? parseInt(PORT) : undefined,
-  authKey: AUTH_KEY,
-})
-
-
-// bot stuff
-const bot = new Bot<MyContext>(BOT_TOKEN as string);
-
-// function initSession(): SessionData {
-//   return { preview: true, review: true, daily: true, calendarUrl: '' };
-// }
-/** Measures the response time of the bot, and logs it to `console` */
-
-
-
-// function myMorningTask(ctx: MyContext) {
-//   console.log('Running my morning task at 9 AM');
-//   const dailyEvents = getDailyEvents(ctx.session.calendar)
-
-//   bot.api.sendMessage(5647311517,dailyEvents);
-//   // Your task logic here
-// }
-
-bot.use(
-  session({
-    initial: () => initialSession(),
-    storage: new FileAdapter<SessionData>({ dirName: "data/sessions", }),
-  })
-);
-
-
-bot.use(conversations());
-bot.use(createConversation(addcalendario));
-bot.use(createConversation(reviewLesson));
-bot.use(createConversation(setUpBot));
-bot.use(createConversation(setRole));
-bot.use(createConversation(addTodo));
-
-bot.use(settingsMenu);
-bot.use(todoMenu);
 
 
 
 
 
-bot.use(dailyEvents);
-bot.use(previewEvents);
-bot.use(reviewEvents);
+const {BOT_TOKEN } = process.env;
 
 
 
+async function main(){
+  // ============================== AI  ==============================
+  logger.debug('loading bot')
+
+  //============================ BOT =======================================
+  const bot = new Bot<MyContext>(BOT_TOKEN as string);
+
+  //----------------------middlewares ------------------------------
+
+  //session
+  logger.debug('loading session')
+  bot.use(sessionMiddleware);
+
+  //conversations
+  logger.debug('loading conversations')
+  bot.use(conversations());
+  bot.use(createConversation(addcalendario));
+  bot.use(createConversation(reviewLesson));
+  bot.use(createConversation(setUpBot));
+  bot.use(createConversation(setRole));
+  bot.use(createConversation(addTodo));
+
+  //menus
+  logger.debug('loading menus')
+  bot.use(settingsMenu);
+  bot.use(todoMenu);
+
+  //notification handlers
+  logger.debug('loading notification handlers')
+  bot.use(dailyEvents);
+  bot.use(previewEvents);
+  bot.use(reviewEvents);
 
 
+  //commands 
+  logger.debug('loading commands')
+  bot.command('start', cmd.startCommand);
+  bot.command('daily', cmd.getDailyCommand);
+  bot.command("nextevents", cmd.nextEventsCommand);
+  bot.command("logjobs", cmd.logJobsCommand);
+  bot.command("addcalendar", cmd.addCalendarCommand);
+  bot.command("review", cmd.reviewLessonCommand);
+  bot.command('refresh', cmd.refreshCalendarCommand);
+  bot.command('buddha', cmd.buddhaCommand);
+  bot.command('image', cmd.imageCommand);
+  bot.command('help', cmd.helpCommand);
+  bot.command('settings', cmd.settingsCommand);
+  bot.command('admin', cmd.adminCommand);
 
 
-
-const calendar: Event[] = []
-
-
-
-
-
-// Schedule the function to run every day at 9 AM
-//const job = schedule.scheduleJob('0 19 * * *', myMorningTask);
+  //chat 
+  logger.debug('loading chat handlers')
+  bot.on('message', chat.handleMessage);
+  bot.on(':document', chat.handleDocument);
 
 
+  //await bot.api.setMyCommands(cmd.myCommands);
 
-
-
-// Create an instance of the `Bot` class and pass your bot token to it.
-
-async function startBot() {
-
-  await bot.api.setMyCommands([
-    { command: "start", description: "Start the bot" },
-    { command: "help", description: "debug stuff" },
-    { command: "settings", description: "settings" },
-    { command: "review", description: "review lesson" },
-    { command: "addcalendar", description: "add un calendar" },
-    { command: "nextevents", description: "get next 3 events from calendar" },
-    { command: "image", description: "generate image from prompt" },
-    { command: "daily", description: "get daily events from the clandar" },
-  ]);
-
-
-
-  // Start the bot
   bot.start();
+  logger.info('bot started')
+
   bot.catch((err) => {
     const ctx = err.ctx;
     logger.error(`Error while handling update ${ctx.update.update_id}:`);
@@ -135,284 +98,123 @@ async function startBot() {
     }
   });
 
-  //console.log("Bot is running");
-  logger.info('Bot is running')
 }
 
 
-// COMMANDS  ================================================================ 
 
-bot.command('daily', async (ctx) => {
-  // const events = await getEvents(url3)
-  //console.log(events)
-  if (!ctx.session.calendar) {
-    ctx.reply('non hai ancora aggiunto un calendario, /addcalendar')
-    return
-  }
-  const dailyEvents = getDailyEvents(ctx.session.calendar)
-
-
-  ctx.reply(dailyEvents)
-});
-
-bot.command('jobs', async (ctx) => {
-
-  if(!ctx.from) return
-  
-  const jobs = dailyJobs
-  for (const job in jobs) {
-    console.log('daily: user: ' + job + ' job: ' + jobs[job]['name'])
-  }
-
-  for (const job in previewJobs) {
-    for (const j in previewJobs[job]){
-      console.log('user: ' + job + ' preview job: ' + previewJobs[job][j]?.nextInvocation())
-    }}
-
-  for (const job in reviewJobs) {
-    for (const j in reviewJobs[job]){
-      console.log('user: ' + job + ' review job: ' + reviewJobs[job][j]?.nextInvocation())
-    }}
-    console.log(previewJobs[ctx.from?.id])
-  ctx.reply( 'you have ' + previewJobs[ctx.from.id]?.length + ' preview jobs' + '\n' + 'you have ' + reviewJobs[ctx.from?.id]?.length + ' review jobs')
-});
+main()
 
 
 
-bot.command("nextevents", async (ctx) => {
-  const calendar: Calendar | undefined = ctx.session.calendar
+// const bot = new Bot<MyContext>(BOT_TOKEN as string);
 
-  if (!calendar) {
-    ctx.reply('non hai ancora aggiunto un calendario, /addcalendar')
-    return
+//   //----------------------middlewares ------------------------------
 
-  }
+//   //session
+// logger.debug('loading session')
+// bot.use(sessionMiddleware);
 
-  const nextEvents = getNextEvents(calendar)
+// //conversations
+// logger.debug('loading conversations')
+// bot.use(conversations());
+// bot.use(createConversation(addcalendario));
+// bot.use(createConversation(reviewLesson));
+// bot.use(createConversation(setUpBot));
+// bot.use(createConversation(setRole));
+// bot.use(createConversation(addTodo));
 
-  ctx.reply(nextEvents)
+// //menus
+// logger.debug('loading menus')
+// bot.use(settingsMenu);
+// bot.use(todoMenu);
 
-
-
-});
-
-
-
-// Handle the /start command.
-bot.command("start", async (ctx) => {
-  await ctx.conversation.enter("setUpBot");
-});
-
-// add a calendar from url
-bot.command("addcalendar", async (ctx) => {
-  console.log('addcalendar')
-  await ctx.conversation.enter("addcalendario");
-});
-
-bot.command('review', async (ctx) => {
-  await ctx.conversation.enter("reviewLesson");
-});
+// //notification handlers
+// logger.debug('loading notification handlers')
+// bot.use(dailyEvents);
+// bot.use(previewEvents);
+// bot.use(reviewEvents);
 
 
-bot.command("refresh", async (ctx) => {
-  await refreshCalendar(ctx)
+// //commands 
+// logger.debug('loading commands')
+// bot.command('start', cmd.startCommand);
+// bot.command('daily', cmd.getDailyCommand);
+// bot.command("nextevents", cmd.nextEventsCommand);
+// bot.command("logjobs", cmd.logJobsCommand);
+// bot.command("addcalendar", cmd.addCalendarCommand);
+// bot.command("review", cmd.reviewLessonCommand);
+// bot.command('refresh', cmd.refreshCalendarCommand);
+// bot.command('buddha', cmd.buddhaCommand);
+// bot.command('image', cmd.imageCommand);
+// bot.command('help', cmd.helpCommand);
+// bot.command('settings', cmd.settingsCommand);
+// bot.command('admin', cmd.adminCommand);
 
-  //console.log(events)
-  ctx.reply('calendario aggiornato')
 
-});
-
-bot.command('buddha', async (ctx) => {
-  const url = 'https://buddha-api.com/api/random'
-  const response = await axios.get(url)
-  const text = response.data.text
-  const author = response.data.byName
-  ctx.reply(`${text}\n\n~${author}`)
-});
+// //chat 
+// logger.debug('loading chat handlers')
+// bot.on('message', chat.handleMessage);
+// bot.on(':document', chat.handleDocument);
 
 
-// generate image from prompt
-bot.command("image", async (ctx) => {
-  // `item` will be "apple pie" if a user sends "/add apple pie".
-  const user_prompt = ctx.match;
+// //await bot.api.setMyCommands(cmd.myCommands);
 
-  if (user_prompt && ctx.session.isAdmin) {
-    ctx.reply('spending 4 cent to generate this image, please wait...')
+// bot.start().then(() => {
+//   logger.info('bot started');
+// }).catch((err) => {
+//   logger.error('Failed to start the bot:', err);
+// });
 
-    const response = await openai.images.generate({
-      model: "dall-e-3",
-      prompt: user_prompt,
-      n: 1,
-      size: "1024x1024",
-    });
-    let image_url = response as any;
 
-    ctx.reply(image_url.data[0].url);
-  } else {
-    ctx.reply('please insert a prompt after /image, or you may not have the rights to do so')
-  }
-});
-
-// this is for debugging
-bot.command("help", async (ctx) => {
-  console.log(ctx.from)
-
-  ctx.reply('help')
-
-});
-
-//settings 
-bot.command("settings", async (ctx) => {
-
-  ctx.reply('Settings: qui puoi scegliere se vuoi \n le preview prima della lezione,  \n review alla fine, \n daily la mattina con la task del giorno', { reply_markup: settingsMenu });
-
-});
-
-//become an admin or a tester  
-bot.command("admin", async (ctx) => {
-  await ctx.reply('admin: ' + ctx.session.isAdmin + '\ntester: ' + ctx.session.isTester)
-
-  if (!ctx.session.isTester) {
-    await ctx.conversation.enter("setRole");
-  }
-
-});
+// bot.catch((err) => {
+//   const ctx = err.ctx;
+//   logger.error(`Error while handling update ${ctx.update.update_id}:`);
+//   const e = err.error;
+//   if (e instanceof GrammyError) {
+//     logger.error("Error in request:", e.description);
+//   } else if (e instanceof HttpError) {
+//     logger.error("Could not contact Telegram:", e);
+//   } else {
+//     logger.error("Unknown error:", e);
+//   }
+// });
 
 
 
-bot.command("todo", async (ctx) => {
 
 
-  const keyboard = new InlineKeyboard()
-  .text("lista todo", 'list-todo').row()
 
-  const todoKeyboard = new InlineKeyboard().text("aggiungi", "click-payload");
+// bot.command("todo", async (ctx) => {
 
-  ctx.conversation.enter("addTodo");
+
+//   const keyboard = new InlineKeyboard()
+//   .text("lista todo", 'list-todo').row()
+
+//   const todoKeyboard = new InlineKeyboard().text("aggiungi", "click-payload");
+
+//   ctx.conversation.enter("addTodo");
 
  
 
-  ctx.reply( "inviami il titolod della todo ",{ reply_markup: keyboard });
+//   ctx.reply( "inviami il titolod della todo ",{ reply_markup: keyboard });
 
-});
+// });
 
-bot.callbackQuery("list-todo", async (ctx) => {
+// bot.callbackQuery("list-todo", async (ctx) => {
 
   
-  await ctx.answerCallbackQuery({
-    text: "scrivi il todo",
-  });
+//   await ctx.answerCallbackQuery({
+//     text: "scrivi il todo",
+//   });
 
-  const todo: string[] = ctx.session.todo
+//   const todo: string[] = ctx.session.todo
  
-  ctx.reply('lista')
+//   ctx.reply('lista')
 
 
 
 
   
-});
+// });
 
 
-// MESSAGES ================================================================
-
-bot.on(":document", async (ctx) => {
-  ctx.reply('sto caricando il file')
-  console.log('bel documento')
-  const document = ctx.message?.document
-  if (!document || !document.mime_type) {
-    ctx.reply("Non hai inviato un documento");
-    return;
-  }
-  const docfile = await ctx.getFile()
-  console.log(docfile)
-  const acceptedTypes = (await cat.api?.rabbitHole.getAllowedMimetypes())?.allowed
-  const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${docfile.file_path}`
-
-
-  if (!acceptedTypes?.includes(document.mime_type)) {
-    ctx.reply(`*il file \`${document?.mime_type}\` non è supportato\\!*`)
-    return
-  }
-
-  console.log(fileUrl)
-
-
-
-
-  const formData = new FormData();
-
-  const blob = await fetch(fileUrl).then(r => r.blob())
-  //const file = new File([blob], 'file.pdf', { type: 'application/pdf' });
-
-  await cat.api?.rabbitHole.uploadFile({ file: blob });
-
-  // try {
-
-  //   const response = await axios.get(url, { responseType: 'arraybuffer' });
-  //   const fileBuffer = Buffer.from(response.data, 'binary');
-
-  //   //fs.writeFileSync('/data/file.pdf', fileBuffer);
-
-  //   const fileBlob = new Blob([fileBuffer], { type: 'application/pdf' }); // Adjust the MIME type as necessary
-
-  //   formData.append('file', fileBuffer, {
-  //     filename: 'file.pdf', // The name of the file
-  //     contentType: 'application/pdf', // The MIME type of the file
-  //   });
-  //   await cat.api?.rabbitHole.uploadFile({ file: fileBlob });
-
-  //   ctx.reply('file uploaded')
-
-
-  // } catch (err) {
-  //   console.log('errore', err);
-  //   console.log('errore', docfile.file_path);
-  //   return;
-  // }
-
-
-
-
-  ctx.reply('file uploaded')
-
-
-  // get blob   
-
-
-
-
-
-});
-
-
-// Handle normal messages. this talks with the cat
-bot.on('message', ctx => {
-  const msg = ctx.message.text as string
-  if (msg.startsWith('/')) return
-
-  if (ctx.session.wantsChat) {
-
-    console.log('sending message to cat')
-
-    //cat.userId = `${ctx.from?.id}`
-    cat.send(msg)
-    ctx.replyWithChatAction('typing')
-    cat.onMessage(res => {
-
-      if (res.type === 'chat') {
-        ctx.reply(res.content);
-      }
-
-    })
-  } else {
-    ctx.reply('attiva la chat da /settings')
-  }
-});
-
-
-
-
-
-
-startBot()

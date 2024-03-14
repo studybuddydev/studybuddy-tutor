@@ -160,7 +160,3 @@ function createReviewJob(date: Date, event: string, ctx: MyContext) {
     return job;
 }
 
-function cleanReviewJobs(chatId: number) {
-    
-
-}

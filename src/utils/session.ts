@@ -1,4 +1,6 @@
+import { session } from 'grammy';
 import { Calendar } from './types';
+import { FileAdapter } from '@grammyjs/storage-file';
 
 export interface SessionData {
     preview: boolean;
@@ -19,6 +21,14 @@ function defaultSession(): SessionData {
   }
 
 export const initialSession : () => SessionData = defaultSession;
+
+
+
+export const sessionMiddleware = session({
+ initial: () => initialSession(),
+ storage: new FileAdapter<SessionData>({ dirName: "data/sessions", }),
+});
+
 
 // export function initSession(): SessionData {
 //     return { preview: true, review: true, daily: true, calendarUrl: '' };
