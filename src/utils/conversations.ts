@@ -5,7 +5,7 @@ import { MyContext, MyConversation, ReviewLesson, type Event, type Calendar } fr
 import { settingsMenu } from './menu';
 import fs from 'fs';
 import 'dotenv/config'
-
+import logger from 'euberlog';
 
 
 
@@ -64,7 +64,7 @@ export async function reviewLesson(conversation: MyConversation, ctx: MyContext)
         }
     }
 
-    console.log(review)
+    logger.debug(review)
     await ctx.reply('ok, grazie, lo salvo su StudyBuddy')
 
 

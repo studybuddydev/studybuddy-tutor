@@ -1,6 +1,6 @@
 import { Menu } from "@grammyjs/menu";
 import { MyContext } from './types';
-
+import logger from 'euberlog';
 
 // settingsmenu used to handle notification of the bot
 
@@ -92,7 +92,6 @@ export const todoMenu = new Menu<MyContext>("todo-menu")
     (ctx) => {
       //edit message 
       ctx.session.todo?.push(ctx.message?.text || '');
-      console.log(ctx.session.todo)
       ctx.editMessageText('todo list aggiunta n'+ ctx.session.todo?.length )  //   }catch (e) { console.log(e)} 
       
     },

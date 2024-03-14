@@ -2,7 +2,7 @@
 import getIcsUri from './calendar';
 import ical from 'node-ical';
 import { Event, Calendar, MyContext } from './types';
-
+import logger from 'euberlog';
 
 // Load the environment variables from the .env file.
 //calendars for testing
@@ -31,7 +31,6 @@ export function getNextEvents(calendar: Calendar) {
     const nextEvents = calendar.events.filter(event => new Date(event.start) > today);
 
 
-    console.log(nextEvents)
 
     //sort by date
     nextEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
@@ -60,7 +59,7 @@ export function getDailyEvents(calendar: Calendar){
 
 
     const todayEvents = calendar.events.filter(event => new Date(event.start).getDate() === today.getDate() && new Date(event.start).getMonth() === today.getMonth())
-    console.log(todayEvents)
+
     todayEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
 
@@ -89,11 +88,11 @@ export async function getEvents(url: string) {
         url: url,
         events: []
     }
-    console.log('getting events from ', url)
+    logger.info('getting events from ', url)
 
     if (!url.endsWith('.ics')) {  //university url 
         url = getIcsUri(url) as any
-        console.log('url is not ics')
+        logger.info('url is not ics')
     }
 
 
@@ -101,10 +100,10 @@ export async function getEvents(url: string) {
         events = await ical.async.fromURL(url)     // parse the ics file
     }
     catch (err) {
-        console.log('error with url', url)
+        logger.error('error with url', url)
     }
 
-    console.log('events', events)
+
 
 
     for (const event in events) {
@@ -125,7 +124,6 @@ function parseEvent(rawEvent: any): Event {
     const regex = /(\d+)([^[]*)(\[.*?\])/;
 
 
-    //console.log(rawEvent.uid)
 
     const eventString = rawEvent['uid'] as string;
     const match = eventString.match(regex);
@@ -149,7 +147,7 @@ function parseEvent(rawEvent: any): Event {
         return event;
 
     } else {
-        console.log('error with ', eventString)
+        logger.error('error with ', eventString)
         return event;
     }
 }

@@ -2,6 +2,7 @@ import { MyContext } from './types';
 import { NextFunction } from 'grammy';
 import * as schedule from 'node-schedule';
 import { getDailyEvents } from './calendarhelp';
+import logger from 'euberlog';
 
 export let dailyJobs: Record<number, schedule.Job> = {};
 export let previewJobs: Record<number, schedule.Job[]> = {};
@@ -14,7 +15,7 @@ export async function dailyEvents(ctx: MyContext, next: NextFunction,): Promise<
     try {
         if (!ctx.chat) return;
 
-        console.log('saving  daily events')
+        logger.info('saving  daily events')
 
         // Schedule a job to send daily events at a specific time (e.g., 9 AM)
         if (ctx.session.daily) {                                                                        // if the user wants to receive daily events
@@ -39,7 +40,7 @@ export async function dailyEvents(ctx: MyContext, next: NextFunction,): Promise<
         }
 
     } catch (error) {
-        console.error('Error in dailyEvents middleware:', error);
+        logger.error('Error in dailyEvents middleware:', error);
         await ctx.reply('An error occurred while scheduling your daily events.');
     } finally {
         await next();
@@ -69,14 +70,14 @@ export async function previewEvents(ctx: MyContext, next: NextFunction,): Promis
                     previewJobs[ctx.chat.id] = [...(previewJobs[ctx.chat.id] || []), previewjob];
                     jobIdToJob[jobId] = previewjob;
                 }else{
-                    console.log('job preview already scheduled')
+                    logger.debug('job preview already scheduled')
                 }
                 
             }
 
 
         }else{
-            console.log('cleaning preview jobs')
+            logger.debug('cleaning preview jobs')
             previewJobs[ctx.chat.id]?.forEach(job => job?.cancel());
             delete previewJobs[ctx.chat.id];
         }
@@ -84,7 +85,7 @@ export async function previewEvents(ctx: MyContext, next: NextFunction,): Promis
     
     }
     catch (error) {
-        console.error('Error in preview Events middleware:', error);
+        logger.error('Error in preview Events middleware:', error);
         await ctx.reply('An error occurred while scheduling your preview events.');
     } finally {
         await next();
@@ -120,7 +121,7 @@ export async function reviewEvents(ctx: MyContext, next: NextFunction,): Promise
             }
 
         }else {
-            console.log('cleaning review jobs')
+            logger.info('cleaning review jobs')
             reviewJobs[ctx.chat.id]?.forEach(job => job?.cancel());
             delete reviewJobs[ctx.chat.id];
             
@@ -128,7 +129,7 @@ export async function reviewEvents(ctx: MyContext, next: NextFunction,): Promise
     
     }
     catch (error) {
-        console.error('Error in review Events middleware:', error);
+        logger.error('Error in review Events middleware:', error);
         await ctx.reply('An error occurred while scheduling your review events.');
     } finally {
         await next();
@@ -142,7 +143,7 @@ export async function reviewEvents(ctx: MyContext, next: NextFunction,): Promise
 
 
 function createPreviewJob(date: Date, event: string, ctx: MyContext) {
-    console.log('schedulo un preview evento', date)
+    logger.debug('schedulo un preview evento', date)
 
     date.setMinutes(date.getMinutes() - 30);
     const job = schedule.scheduleJob(date, async () => {
@@ -152,7 +153,7 @@ function createPreviewJob(date: Date, event: string, ctx: MyContext) {
 }
 
 function createReviewJob(date: Date, event: string, ctx: MyContext) {
-    console.log('schedulo  review un evento', date)
+    logger.debug('schedulo  review un evento', date)
     date.setMinutes(date.getMinutes() +10 );
     const job = schedule.scheduleJob(date, async () => {
         await ctx.conversation.enter('review');

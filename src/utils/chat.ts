@@ -1,6 +1,7 @@
 import { MyContext } from './types'
 import { cat  } from './ai'
 import 'dotenv/config'
+import logger from 'euberlog'
 
 const BOT_TOKEN  = process.env.BOT_TOKEN as string
 
@@ -12,7 +13,7 @@ export async function handleMessage(ctx: MyContext) {
 
     if (ctx.session.wantsChat) {
 
-        console.log('sending message to cat')
+        logger.debug('sending message to cat')
 
         //cat.userId = `${ctx.from?.id}`
         cat.send(msg)
@@ -33,14 +34,14 @@ export async function handleMessage(ctx: MyContext) {
 //handle document
 export async function handleDocument(ctx: MyContext) {
     ctx.reply('sto caricando il file')
-    console.log('bel documento')
+    logger.info('bel documento')
     const document = ctx.message?.document
     if (!document || !document.mime_type) {
         ctx.reply("Non hai inviato un documento");
         return;
     }
     const docfile = await ctx.getFile()
-    console.log(docfile)
+   
     const acceptedTypes = (await cat.api?.rabbitHole.getAllowedMimetypes())?.allowed
     const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/${docfile.file_path}`
 
