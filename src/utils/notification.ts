@@ -142,7 +142,7 @@ export async function reviewEvents(ctx: MyContext, next: NextFunction,): Promise
 
 
 
-function createPreviewJob(date: Date, event: string, ctx: MyContext) {
+export function createPreviewJob(date: Date, event: string, ctx: MyContext) {
     logger.debug('schedulo un preview evento', date)
 
     date.setMinutes(date.getMinutes() - 30);
@@ -152,7 +152,7 @@ function createPreviewJob(date: Date, event: string, ctx: MyContext) {
     return job;
 }
 
-function createReviewJob(date: Date, event: string, ctx: MyContext) {
+export function createReviewJob(date: Date, event: string, ctx: MyContext) {
     logger.debug('schedulo  review un evento', date)
     date.setMinutes(date.getMinutes() +10 );
     const job = schedule.scheduleJob(date, async () => {

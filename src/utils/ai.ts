@@ -6,6 +6,7 @@ import 'dotenv/config'
 const { AUTH_KEY, URL, PORT } = process.env
 
 export const openai = new OpenAI();
+
 export const cat = new CatClient({
   baseUrl: URL as any,
   user: 'user',

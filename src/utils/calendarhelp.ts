@@ -24,7 +24,7 @@ export async  function refreshCalendar(ctx: MyContext) {
       
 }
 
-export function getNextEvents(calendar: Calendar) {
+export function getNextEvents(calendar: Calendar, n: number = 3) {
 
     // sort calendar by date
     const today = new Date()
@@ -37,7 +37,7 @@ export function getNextEvents(calendar: Calendar) {
 
     let nextEventsString = "I tuoi prossimi eventi:\n\n"
     // get next 3 events with date and time
-    nextEvents.slice(0, 3).forEach(event => {
+    nextEvents.slice(0, n).forEach(event => {
         const start = new Date(event.start).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
         const end = new Date(event.end).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
         const date = new Date(event.start).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' });
@@ -86,7 +86,8 @@ export async function getEvents(url: string) {
     let events: any = []
     let calendar: Calendar = {
         url: url,
-        events: []
+        events: [],
+        title: 'calendar'
     }
     logger.info('getting events from ', url)
 
