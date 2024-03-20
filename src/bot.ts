@@ -56,7 +56,7 @@ async function main(){
   bot.command('start', cmd.startCommand);
   bot.command('daily', cmd.getDailyCommand);
   bot.command("nextevents", cmd.nextEventsCommand);
-  bot.command("logjobs", cmd.logJobsCommand);
+  bot.command("jobs", cmd.logJobsCommand);
   bot.command("addcalendar", cmd.addCalendarCommand);
   bot.command("review", cmd.reviewLessonCommand);
   bot.command('refresh', cmd.refreshCalendarCommand);

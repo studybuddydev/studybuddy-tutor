@@ -6,6 +6,8 @@ import axios from 'axios';
 import { settingsMenu, todoMenu } from './menu';
 import { openai } from './ai';
 import { todo } from 'node:test';
+import logger from 'euberlog';
+import * as schedule from 'node-schedule';
 
 
 
@@ -51,25 +53,12 @@ export async function getDailyCommand(ctx: MyContext) {
 // Function to handle the "jobs" command
 export async function logJobsCommand(ctx: MyContext) {
     if (!ctx.from) return;
+    const jobs = schedule.scheduledJobs;
+    const jobList = Object.keys(jobs).map((job) => jobs[job].nextInvocation());
 
-    const jobs = dailyJobs;
-    for (const job in jobs) {
-        logging.debug('daily: user: ' + job + ' job: ' + jobs[job]['name']);
-    }
-
-    for (const job in previewJobs) {
-        for (const j in previewJobs[job]) {
-            logging.debug('user: ' + job + ' preview job: ' + previewJobs[job][j]?.nextInvocation());
-        }
-    }
-
-    for (const job in reviewJobs) {
-        for (const j in reviewJobs[job]) {
-            logging.debug('user: ' + job + ' review job: ' + reviewJobs[job][j]?.nextInvocation());
-        }
-    }
-    console.log(previewJobs[ctx.from?.id]);
-    ctx.reply('you have ' + previewJobs[ctx.from.id]?.length + ' preview jobs' + '\n' + 'you have ' + reviewJobs[ctx.from?.id]?.length + ' review jobs');
+    logger.debug('jobs', jobList);
+  
+    ctx.reply('jobbo')
 }
 
 

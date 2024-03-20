@@ -29,7 +29,7 @@ export async function dailyEvents(ctx: MyContext, next: NextFunction,): Promise<
         logger.info('saving  daily events')
 
         // Schedule a job to send daily events at a specific time (e.g., 9 AM)
-        if (ctx.session.daily) {                                                                        // if the user wants to receive daily events
+        if (ctx.session.daily && Object.keys(dailyJobs).length === 0 ) {                                                                        // if the user wants to receive daily events
         // the job
 
         const jobid = `daily: alle 9`;  
@@ -45,7 +45,7 @@ export async function dailyEvents(ctx: MyContext, next: NextFunction,): Promise<
         userjobsid[ctx.chat.id] = [...(userjobsid[ctx.chat.id] || []), jobid];                     // store the job id in the userjobsid object
 
         }
-        else {
+        if(!ctx.session.daily) {
             // Cancel the job if the user doesn't want to receive daily events
             const job = dailyJobs[ctx.chat.id];
             if (job) {
@@ -148,7 +148,7 @@ export function createPreviewJob(date: Date, event: string, ctx: MyContext) {
     const jobid = `id-${formatter.format(date.getTime())} - ${event.substring(0,5)}-preview`; // Unique identifier for the job
 
     if (!userjobsid[ctx.chat.id]?.includes(jobid)) {
-        const job = schedule.scheduleJob(date, async () => {
+        const job = schedule.scheduleJob(jobid, date, async () => {
             await ctx.reply(`Your event "${event}" is starting in 30 minutes.`);
         });
 
