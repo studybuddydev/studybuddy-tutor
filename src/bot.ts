@@ -24,6 +24,7 @@ async function main(){
   //============================ BOT =======================================
   const bot = new Bot<MyContext>(BOT_TOKEN as string);
 
+
   //----------------------middlewares ------------------------------
 
   //session
@@ -76,7 +77,7 @@ async function main(){
 
   //await bot.api.setMyCommands(cmd.myCommands);
 
-  bot.start();
+  bot.start({ drop_pending_updates: true });
   logger.info('bot started')
 
   bot.catch((err) => {
