@@ -1,20 +1,13 @@
-import { Menu } from "@grammyjs/menu";
+import { Menu , MenuRange } from "@grammyjs/menu";
 import { MyContext } from './types';
 import logger from 'euberlog';
 import { get } from 'http';
 import {getNextEvents } from './calendarhelp';
-import { createPreviewJob, previewJobs, reviewJobs } from './notification';
+import { createPreviewJob, previewJobs, reviewJobs, userjobsid } from './notification';
 
 // settingsmenu used to handle notification of the bot
 
-const formatter = new Intl.DateTimeFormat('it-IT', {
-  weekday: 'short', // Short weekday name (e.g., "gio")
-  day: 'numeric', // Day of the month (e.g., "20")
-  month: 'short', // Short month name (e.g., "mar")
-  hour: '2-digit', // Hour in 2-digit format (e.g., "12")
-  minute: '2-digit', // Minute in 2-digit format (e.g., "30")
-  hour12: false, // Use 24-hour format
- });
+
 
 // Define the higher-order function
 // Define the middleware function outside
@@ -38,8 +31,21 @@ async function editMsgListNotification(ctx: MyContext) {
  }
 
 
+async function editMsgCalendar(ctx: MyContext) {
+
+  if (!ctx.from) return
+  const msg = ctx.session.calendar ? 'il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi' : 'non hai un calendario'
+
+  try {
+      await ctx.editMessageText(msg);
+  } catch (e) {
+      logger.warning(e as string);
+  }
+}
+
+
 export const settingsMenu = new Menu<MyContext>("root-menu")
-  .submenu( (ctx: MyContext) => ctx.from && ctx.session.calendar  ?  "📆 Calendario ✅": "📆 Calendario  ❌" , "calendar-menu")
+  .submenu( (ctx: MyContext) => ctx.from && ctx.session.calendar  ?  "📆 Calendario ✅": "📆 Calendario  ❌" , "calendar-menu", editMsgCalendar)
   .submenu("🔔 Notifiche 🔕", "notification-menu" , editMsgListNotification ).row()
   .text(
     (ctx: MyContext) => ctx.from && ctx.session.wantsChat  ?  "💬 chat ✅": "💬 chat ❌" ,
@@ -136,22 +142,37 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
   .text(
     "lista prossime notifiche",
     async (ctx) => {
-      const nextPJobs = previewJobs[ctx.from?.id]
-      let msg = nextPJobs?.length ? 'hai ' + nextPJobs.length + ' eventi preview  in programma' : 'non hai preview in programma'
+      // const nextPJobs = previewJobs[ctx.from?.id]
+      // let msg = nextPJobs?.length ? 'hai ' + nextPJobs.length + ' eventi preview  in programma' : 'non hai preview in programma'
 
-      for (const job of nextPJobs?.slice(0,5) || []) {
-        const date = new Date(job.nextInvocation())
-        msg += '\n' + formatter.format(date)
+      // for (const job of nextPJobs?.slice(0,5) || []) {
+      //   const date = new Date(job.nextInvocation())
+      //   msg += '\n' + formatter.format(date)
+      // }
+
+      // const nextRJobs = reviewJobs[ctx.from?.id]
+      // msg += '\n\n'
+      // msg += nextRJobs?.length ? 'hai ' + nextRJobs.length + ' eventi review in programma' : 'non hai review in programma'
+
+      // for (const job of nextRJobs?.slice(0,5) || []) {
+      //   const date = new Date(job.nextInvocation())
+      //   msg += '\n' + formatter.format(date)
+      // }
+      const jobs = userjobsid[ctx.from?.id]
+      // sort jobs alphabetically
+      jobs?.sort()
+
+      let msg = 'hai ' + jobs?.length + ' eventi in programma'
+
+      for (const job of jobs?.slice(0,10) || []) {
+        
+        msg += '\n' + job
       }
 
-      const nextRJobs = reviewJobs[ctx.from?.id]
-      msg += '\n\n'
-      msg += nextRJobs?.length ? 'hai ' + nextRJobs.length + ' eventi review in programma' : 'non hai review in programma'
 
-      for (const job of nextRJobs?.slice(0,5) || []) {
-        const date = new Date(job.nextInvocation())
-        msg += '\n' + formatter.format(date)
-      }
+      
+
+
       
       try {
         await ctx.editMessageText(msg);
@@ -177,28 +198,18 @@ settingsMenu.register(fileMenu);
 
 export const todoMenu = new Menu<MyContext>("todo-menu")
   .text(
-    "ok scrivilo",
+    "add todo",
     (ctx) => {
       //edit message 
-      ctx.session.todo?.push(ctx.message?.text || '');
-      ctx.editMessageText('todo list aggiunta n'+ ctx.session.todo?.length )  //   }catch (e) { console.log(e)} 
-      
+      //ctx.session.todo?.push(ctx.message?.text || '');
+     //   }catch (e) { console.log(e)} 
+      ctx.reply('/todo todo da aggiungere')
     },
-  ) .text(
-    "list todo",
-    (ctx) => {
-      //edit message 
-      if (ctx.message?.text != 'todo list') {
-        //ctx.editMessageText('todo list')
-      }
-      ctx.session.preview = !ctx.session.preview;
-    },
-  )  
-  
+  ).submenu("elimina", 'delete-todo').row() 
 
 const addTodoMenu = new Menu<MyContext>("add-todo")
 
-  .text(
+  .text( 
     "aggiungi",
     async (ctx) => {
       await ctx.session.todo?.push(ctx.message?.text || '');
@@ -207,4 +218,36 @@ const addTodoMenu = new Menu<MyContext>("add-todo")
   .back("Go Back");
 
 
+const deleteTodoMenu = new Menu<MyContext>("delete-todo")
+  .dynamic(async (ctx) => {
+    // Generate a part of the menu dynamically!
+    const range = new MenuRange<MyContext>();
+
+    ctx.session.todo?.forEach((todo, index) => {
+      range
+        .text((todo).toString(), (ctx) => {
+          ctx.session.todo?.splice(index, 1) 
+          ctx.menu.update();
+
+          let msg = 'hai ' + ctx.session.todo?.length + ' cose da fare: \n'
+          ctx.session.todo?.forEach((todo, index) => {
+              msg += `\n${index + 1}. ${todo}`;
+          });
+          ctx.editMessageText(msg)
+          ctx.answerCallbackQuery({text: "todo eliminato",});
+        
+        })
+  });
+
+
+
+  return range;
+})
+
+
+
 todoMenu.register(addTodoMenu);
+todoMenu.register(deleteTodoMenu);
+
+
+

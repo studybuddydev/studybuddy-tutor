@@ -65,6 +65,7 @@ async function main(){
   bot.command('help', cmd.helpCommand);
   bot.command('settings', cmd.settingsCommand);
   bot.command('admin', cmd.adminCommand);
+  bot.command('todo', cmd.todoCommand);
 
 
   //chat 

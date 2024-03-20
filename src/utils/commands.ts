@@ -3,8 +3,9 @@ import { getDailyEvents, getNextEvents, refreshCalendar } from './calendarhelp'
 import { dailyJobs, previewJobs, reviewJobs } from './notification'
 import logging from 'euberlog'
 import axios from 'axios';
-import { settingsMenu } from './menu';
+import { settingsMenu, todoMenu } from './menu';
 import { openai } from './ai';
+import { todo } from 'node:test';
 
 
 
@@ -141,7 +142,7 @@ export async function imageCommand(ctx: MyContext) {
 
 //settings
 export async function settingsCommand(ctx: MyContext) {
-    ctx.reply('Settings: qui puoi scegliere se vuoi \n le preview prima della lezione,  \n review alla fine, \n daily la mattina con la task del giorno', { reply_markup: settingsMenu });
+    ctx.reply('SETTINGS', { reply_markup: settingsMenu });
 }
 
 //admin
@@ -151,4 +152,21 @@ export async function adminCommand(ctx: MyContext) {
     if (!ctx.session.isTester) {
       await ctx.conversation.enter("setRole");
     }
+}
+
+
+//todo
+export async function todoCommand(ctx: MyContext) {
+
+    if(ctx.message?.text != '/todo' && ctx.message?.text != undefined) {
+        // remove the command from the message
+        ctx.message.text = ctx.message.text.replace('/todo', '').trim()
+        ctx.session.todo?.push(ctx.message?.text || '');
+    }
+
+    let msg = 'hai ' + ctx.session.todo?.length + ' cose da fare: \n'
+    ctx.session.todo?.forEach((todo, index) => {
+        msg += `\n${index + 1}. ${todo}`;
+    });
+    ctx.reply(msg, { reply_markup: todoMenu });
 }
