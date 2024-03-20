@@ -4,6 +4,8 @@ import logger from 'euberlog';
 import { get } from 'http';
 import {getNextEvents } from './calendarhelp';
 import { createPreviewJob, previewJobs, reviewJobs, userjobsid } from './notification';
+import { getCatClient  } from './ai';
+
 
 // settingsmenu used to handle notification of the bot
 
@@ -54,6 +56,9 @@ export const settingsMenu = new Menu<MyContext>("root-menu")
         await ctx.reply('per utilizzare la chat devi essere un tester certificato, contattaci')
       }else {
         ctx.session.wantsChat = !ctx.session.wantsChat;
+        if (ctx.session.wantsChat) {
+            getCatClient(`${ctx.from?.id}`)
+        }
         ctx.menu.update(); // update the menu!
       }
 
