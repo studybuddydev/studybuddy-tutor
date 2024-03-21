@@ -51,6 +51,20 @@ async function editMsgCalendar(ctx: MyContext) {
   }
 }
 
+async function editMsgFile(ctx: MyContext) {
+  
+    if (!ctx.from) return
+  
+    const fileMsg = fs.readFileSync('./src/messages/docs.md', 'utf8');
+  
+    try {
+      await ctx.editMessageText(fileMsg, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+  
+    } catch (e) {
+      logger.warning(e as string);
+    }
+  }
+
 
 export const settingsMenu = new Menu<MyContext>("root-menu")
   .submenu( (ctx: MyContext) => ctx.from && ctx.session.calendar  ?  "📆 Calendario ✅": "📆 Calendario  ❌" , "calendar-menu", editMsgCalendar)
@@ -69,7 +83,7 @@ export const settingsMenu = new Menu<MyContext>("root-menu")
       }
 
     })
-  .submenu( (ctx: MyContext) => ctx.from && ctx.session.wantsDocs  ?  "📁 files ✅": "📁 files ❌", "file-menu")
+  .submenu( (ctx: MyContext) => ctx.from && ctx.session.wantsDocs  ?  "📁 files ✅": "📁 files ❌", "file-menu", editMsgFile)
 
 
 const fileMenu = new Menu<MyContext>("file-menu")
@@ -81,7 +95,15 @@ const fileMenu = new Menu<MyContext>("file-menu")
     
     },
   ).row()
-  .back("Go Back");
+  .back("Go Back",async (ctx) => {
+
+    try {
+      const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
+      await ctx.editMessageText(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+    }catch (e) { logger.error(e as string)}
+      
+
+  });
 
 
 //calendar menu 
@@ -106,7 +128,8 @@ const calendarMenu = new Menu<MyContext>("calendar-menu")
   .back("Go Back",async (ctx) => {
 
     try {
-        await ctx.editMessageText('scegli qualcosa')
+      const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
+      await ctx.editMessageText(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
     }catch (e) { logger.error(e as string)}
       
 
@@ -160,8 +183,15 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
         logger.error(e as string)
       }
     })
+    .back("Go Back",async (ctx) => {
+
+      try {
+        const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
+        await ctx.editMessageText(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+      }catch (e) { logger.error(e as string)}
+        
   
-  .back("Go Back");
+    });
 
 
 
