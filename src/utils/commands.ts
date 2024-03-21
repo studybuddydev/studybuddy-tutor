@@ -3,7 +3,7 @@ import { getDailyEvents, getNextEvents, refreshCalendar } from './calendarhelp'
 import { dailyJobs, previewJobs, reviewJobs } from './notification'
 import logging from 'euberlog'
 import axios from 'axios';
-import { settingsMenu, todoMenu } from './menu';
+import { settingsMenu, todoMenu } from './bin/menu';
 import { openai } from './ai';
 import logger from 'euberlog';
 import * as schedule from 'node-schedule';

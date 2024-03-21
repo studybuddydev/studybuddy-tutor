@@ -2,7 +2,7 @@
 import {  Keyboard } from "grammy";
 import { getEvents } from "./calendarhelp";
 import { MyContext, MyConversation, ReviewLesson, type Event, type Calendar } from "./types";
-import { settingsMenu } from './menu';
+import { settingsMenu } from './bin/menu';
 import fs from 'fs';
 import 'dotenv/config'
 import logger from 'euberlog';

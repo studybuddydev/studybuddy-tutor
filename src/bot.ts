@@ -4,7 +4,8 @@ import { conversations, createConversation, } from "@grammyjs/conversations";
 import logger from 'euberlog';
 import 'dotenv/config'
 
-import { settingsMenu, todoMenu } from "./utils/menu";
+import { rootMenu } from "./Menu/startMenu";
+import { todoMenu } from "./Menu/todoMenu";
 import { MyContext } from "./utils/types";
 import { sessionMiddleware } from "./utils/session";
 import { dailyEvents, previewEvents, reviewEvents,  } from './utils/notification';
@@ -42,7 +43,7 @@ async function main(){
 
   //menus
   logger.debug('loading menus')
-  bot.use(settingsMenu);
+  bot.use(rootMenu);
   bot.use(todoMenu);
 
   //notification handlers

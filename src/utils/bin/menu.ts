@@ -1,10 +1,10 @@
 import { Menu , MenuRange } from "@grammyjs/menu";
-import { MyContext } from './types';
+import { MyContext } from '../types';
 import logger from 'euberlog';
 import { get } from 'http';
-import {getNextEvents } from './calendarhelp';
-import { createPreviewJob, previewJobs, reviewJobs, userjobsid, formatter } from './notification';
-import { getCatClient  } from './ai';
+import {getNextEvents } from '../calendarhelp';
+import { createPreviewJob, previewJobs, reviewJobs, userjobsid, formatter } from '../notification';
+import { getCatClient  } from '../ai';
 import fs from 'fs';
 import * as schedule from 'node-schedule';
 // settingsmenu used to handle notification of the bot
