@@ -1,19 +1,15 @@
-🍎 Ciao \! sono StudyTutor e sono qua per semplificarti la vita all'università, chiedimi quello di cui hai bisogno, e proverò a rispondere\. 
+🍎 Ciao \! sono StudyTutor e sono qua per semplificarti la vita all'università, clicca i bottoni qui sotto per piu info 
 
 📆  __*CALENDARIO*__ 📆
+importa il tuo calendario da google o da quello dell'università
 
-    🗓️ *__daily__* : ricevi ogni mattina le lezioni del giorno \.
 
-    👀 *__Preview__* : Ti avviso mezz'ora prima cosi hai tempo di riguardare il materiale e di spostarti\.
+📚 __*CARICA FILE*__ 📚 soon
+mandami dei file su cui poi puoi farmi domande 
 
-    ✅ *__Review__*: dopo la lezione ti chiedo come è andata \.
+💬 __*CHAT*__ 💬
+chat gpt ma per l'università
 
-📂 __*CARICA FILE*__ 📂
 
-Puoi mandarmi dei pdf o txt,ma anche url in realtà\.
-
-    ❓*__Risposte__*: posso rispondere alle domande che mi fai riguardo al documento che mi mandi\.
-
-    💡*__Domande__*: puoi chiedermi di interrogarti sul documento\.
-
-    Per impostare le notifiche\, utilizza il comando sotto seguito dalle tue preferenze\. Fammi sapere se hai bisogno di aiuto con qualcos\'altro\!
+🔔 __*NOTIFICHE*__ 🔔
+ deciti te quando ti devo scrivere

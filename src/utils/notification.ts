@@ -10,7 +10,7 @@ export let reviewJobs: Record<number, schedule.Job[]> = {};
 
 export const userjobsid: Record<string, string[]> = {};
 
-const formatter = new Intl.DateTimeFormat('it-IT', {
+export const formatter = new Intl.DateTimeFormat('it-IT', {
     day: 'numeric', // Day of the month (e.g., "20")
     weekday: 'short', // Short weekday name (e.g., "gio")
     month: 'short', // Short month name (e.g., "mar")

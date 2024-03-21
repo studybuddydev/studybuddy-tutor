@@ -5,9 +5,9 @@ import logging from 'euberlog'
 import axios from 'axios';
 import { settingsMenu, todoMenu } from './menu';
 import { openai } from './ai';
-import { todo } from 'node:test';
 import logger from 'euberlog';
 import * as schedule from 'node-schedule';
+import fs from 'fs';
 
 
 
@@ -26,8 +26,8 @@ export const myCommands = [
 //start command
 export async function startCommand(ctx: MyContext) {
     logging.debug(ctx.from + '')
-    await ctx.conversation.enter("setUpBot");
-    ctx.reply('ciao, sono il tuo assistente personale, per iniziare aggiungi un calendario con /addcalendar')
+    const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
+    await ctx.reply(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
 }
 
 

@@ -3,10 +3,10 @@ import { MyContext } from './types';
 import logger from 'euberlog';
 import { get } from 'http';
 import {getNextEvents } from './calendarhelp';
-import { createPreviewJob, previewJobs, reviewJobs, userjobsid } from './notification';
+import { createPreviewJob, previewJobs, reviewJobs, userjobsid, formatter } from './notification';
 import { getCatClient  } from './ai';
-
-
+import fs from 'fs';
+import * as schedule from 'node-schedule';
 // settingsmenu used to handle notification of the bot
 
 
@@ -17,6 +17,8 @@ async function editMsgListNotification(ctx: MyContext) {
 
   if (!ctx.from) return
 
+  const notificationMsg = fs.readFileSync('./src/messages/notification.md', 'utf8');
+
   const preview = previewJobs[ctx.from?.id]
   const review = reviewJobs[ctx.from?.id]
 
@@ -26,7 +28,8 @@ async function editMsgListNotification(ctx: MyContext) {
 
 
   try {
-     await ctx.editMessageText(msg);
+    await ctx.editMessageText(notificationMsg, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+
   } catch (e) {
      logger.warning(e as string);
   }
@@ -36,10 +39,13 @@ async function editMsgListNotification(ctx: MyContext) {
 async function editMsgCalendar(ctx: MyContext) {
 
   if (!ctx.from) return
+  if (!ctx.session.calendar) return
+
+  const nextEvents = getNextEvents(ctx.session.calendar);
   const msg = ctx.session.calendar ? 'il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi' : 'non hai un calendario'
 
   try {
-      await ctx.editMessageText(msg);
+      await ctx.editMessageText(msg + '\n' + nextEvents);
   } catch (e) {
       logger.warning(e as string);
   }
@@ -87,7 +93,7 @@ const calendarMenu = new Menu<MyContext>("calendar-menu")
 
     })
   .text(
-    "prossimi eventi",
+    ">",
     async (ctx) => {
       if (!ctx.session.calendar) return
       const nextEvents = getNextEvents(ctx.session.calendar);
@@ -110,23 +116,15 @@ const calendarMenu = new Menu<MyContext>("calendar-menu")
 //notification menu
 const notificationSettings = new Menu<MyContext>("notification-menu")
   .text(
+  (ctx: MyContext) => ctx.from && ctx.session.daily ? "🔔 daily" : "🔕 daily",
+  (ctx) => {
+    ctx.session.daily = !ctx.session.daily;
+    ctx.menu.update(); // update the menu!
+  })
+  .text(
     (ctx: MyContext) => ctx.from && ctx.session.preview ? "🔔 preview" : "🔕 preview",
     async (ctx) => {
       ctx.session.preview = !ctx.session.preview;
-
-      // trigger an update so the middleware can update the jobs 
-      // update the menu!
-      // const previewJobs = previewJobs[ctx.from?.id]
-
-
-      // const nextJobs = previewJobs[ctx.from?.id]
-      // let msg = nextJobs?.length ? 'hai ' + nextJobs.length + ' eventi in programma' : 'non hai eventi in programma'
-
-      // for (const job of nextJobs?.slice(0,10) || []) {
-      //   msg += '\n' + job.nextInvocation().toLocaleString().substring(0, 10)
-      // }
-      // //ctx.reply(msg)
-
 
       ctx.menu.update(); // update the menu!
     },
@@ -138,47 +136,23 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
       ctx.menu.update(); // update the menu!
     },
   )
-  .text(
-    (ctx: MyContext) => ctx.from && ctx.session.daily ? "🔔 daily" : "🔕 daily",
-    (ctx) => {
-      ctx.session.daily = !ctx.session.daily;
-      ctx.menu.update(); // update the menu!
-    }).row()
+  .row()
   .text(
     "lista prossime notifiche",
     async (ctx) => {
-      // const nextPJobs = previewJobs[ctx.from?.id]
-      // let msg = nextPJobs?.length ? 'hai ' + nextPJobs.length + ' eventi preview  in programma' : 'non hai preview in programma'
 
-      // for (const job of nextPJobs?.slice(0,5) || []) {
-      //   const date = new Date(job.nextInvocation())
-      //   msg += '\n' + formatter.format(date)
-      // }
+      const jobs = schedule.scheduledJobs
 
-      // const nextRJobs = reviewJobs[ctx.from?.id]
-      // msg += '\n\n'
-      // msg += nextRJobs?.length ? 'hai ' + nextRJobs.length + ' eventi review in programma' : 'non hai review in programma'
-
-      // for (const job of nextRJobs?.slice(0,5) || []) {
-      //   const date = new Date(job.nextInvocation())
-      //   msg += '\n' + formatter.format(date)
-      // }
-      const jobs = userjobsid[ctx.from?.id]
       // sort jobs alphabetically
-      jobs?.sort()
+      const jobsArray = Object.keys(jobs).map((job) => jobs[job].nextInvocation());
+      jobsArray.sort((a, b) => a.getTime() - b.getTime());
 
-      let msg = 'hai ' + jobs?.length + ' eventi in programma'
+      let msg = 'hai ' + jobsArray?.length + ' eventi in programma'
 
-      for (const job of jobs?.slice(0,10) || []) {
-        
-        msg += '\n' + job
+      for (const job of jobsArray?.slice(0,5) || []) {
+        const date = formatter.format(new Date(job))
+        msg += '\n' + date
       }
-
-
-      
-
-
-      
       try {
         await ctx.editMessageText(msg);
       }
