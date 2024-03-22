@@ -19,8 +19,9 @@ export async function handleMessage(ctx: MyContext) {
             logger.debug('sending message to cat')
             cat?.send(msg)
         })
-            
-
+        
+        cat?.send(msg)
+        
 
         ctx.replyWithChatAction('typing')
 
