@@ -3,7 +3,7 @@ import { MyContext } from './../utils/types';
 import logger from 'euberlog';
 import { get } from 'http';
 import { getNextEvents } from './../utils/calendarhelp';
-import { createPreviewJob, previewJobs, reviewJobs, userjobsid, formatter } from './../utils/notification';
+import * as notific from './../utils/notification';
 import { getCatClient } from './../utils/ai';
 import fs from 'fs';
 import * as schedule from 'node-schedule';
@@ -19,8 +19,8 @@ async function editMsgListNotification(ctx: MyContext) {
 
     const notificationMsg = fs.readFileSync('./src/messages/notification.md', 'utf8');
 
-    const preview = previewJobs[ctx.from?.id]
-    const review = reviewJobs[ctx.from?.id]
+    const preview = notific.previewJobs[ctx.from?.id]
+    const review = notific.reviewJobs[ctx.from?.id]
 
     let msg = ' hai ' + (preview?.length || 0) + ' preview in programma'
     msg += '\nhai ' + (review?.length || 0) + ' review in programma'
@@ -143,6 +143,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
         (ctx) => {
             ctx.session.daily = !ctx.session.daily;
             ctx.session.dailyChanged = true;
+            notific.updateDailyJobs(ctx);
             ctx.menu.update(); // update the menu!
         })
     .text(
@@ -150,6 +151,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
         async (ctx) => {
             ctx.session.preview = !ctx.session.preview;
             ctx.session.previewChanged = true;
+            notific.updatePreviewJobs(ctx);
             ctx.menu.update(); // update the menu!
         },
     )
@@ -158,6 +160,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
         (ctx) => {
             ctx.session.review = !ctx.session.review;
             ctx.session.reviewChanged = true;
+            notific.updateReviewJobs(ctx);
             ctx.menu.update(); // update the menu!
         },
     )
@@ -175,7 +178,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
             let msg = 'hai ' + jobsArray?.length + ' eventi in programma'
 
             for (const job of jobsArray?.slice(0, 5) || []) {
-                const date = formatter.format(new Date(job))
+                const date = notific.formatter.format(new Date(job))
                 msg += '\n' + date
             }
             try {
