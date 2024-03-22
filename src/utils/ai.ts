@@ -21,7 +21,7 @@ const clients = new Map<string, CatClient>()
 export function getCatClient(userId: string) {
   if (clients.has(userId)) {
     logger.debug('client already exists')
-    return clients.get(userId)
+    
   } else {
     logger.debug('creating new client for ', userId)
 
@@ -33,6 +33,7 @@ export function getCatClient(userId: string) {
     })
 
     clients.set(userId, client)
-    return client
+    
   }
+  return clients.get(userId)
 }

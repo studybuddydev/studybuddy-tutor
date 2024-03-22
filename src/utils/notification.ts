@@ -26,32 +26,15 @@ export async function dailyEvents(ctx: MyContext, next: NextFunction,): Promise<
     try {
         if (!ctx.chat) return;
 
-        logger.info('saving  daily events')
 
-        // Schedule a job to send daily events at a specific time (e.g., 9 AM)
-        if (ctx.session.daily && Object.keys(dailyJobs).length === 0 ) {                                                                        // if the user wants to receive daily events
-        // the job
+        if (ctx.session.dailyChanged) {
 
-        const jobid = `daily: alle 9`;  
-                                                                // Unique identifier for the job
-        const job = schedule.scheduleJob('0 9 * * *', async () => {
-            if (!ctx.session.calendar) return;
-            const dailyEvents = getDailyEvents(ctx.session.calendar);
-            // Assuming ctx.chat.id is the user's chat ID
-            await ctx.reply(dailyEvents);
-        });
+            ctx.session.dailyChanged = false;
+            logger.debug('updating daily events')
 
-        dailyJobs[ctx.chat.id] = job;                                                               // store the job in the dailyJobs object
-        userjobsid[ctx.chat.id] = [...(userjobsid[ctx.chat.id] || []), jobid];                     // store the job id in the userjobsid object
+            updateDailyJobs(ctx);
 
-        }
-        if(!ctx.session.daily) {
-            // Cancel the job if the user doesn't want to receive daily events
-            const job = dailyJobs[ctx.chat.id];
-            if (job) {
-                job.cancel();
-                delete dailyJobs[ctx.chat.id];
-            }
+
         }
 
     } catch (error) {
@@ -59,35 +42,24 @@ export async function dailyEvents(ctx: MyContext, next: NextFunction,): Promise<
         await ctx.reply('An error occurred while scheduling your daily events.');
     } finally {
         await next();
-    }   
+    }
 }
 
 
 export async function previewEvents(ctx: MyContext, next: NextFunction,): Promise<void> {
     try {
-        if (!ctx.chat) return;
 
 
         // schedule a job 30 min before all the events in the calendar
-        if (ctx.session.preview) {
-        
-            let events = ctx.session.calendar?.events;                                     // get the events from the calendar    
-            events = events?.filter(event => new Date(event.start) > new Date());       // filter out the events that are already passed
-            if (!events) return;
+        if (ctx.session.previewChanged) {
+            ctx.session.previewChanged = false;
+            logger.debug('updating events')
 
-            for (const event of events) {
-                createPreviewJob(new Date(event.start), event.summary, ctx);
-            }
+            updatePreviewJobs(ctx);
 
-        }else{
-            logger.debug('cleaning preview jobs')
-            previewJobs[ctx.chat.id]?.forEach(job => job?.cancel());
-            userjobsid[ctx.chat.id] = [];
-            
-            delete previewJobs[ctx.chat.id];
         }
 
-    
+
     }
     catch (error) {
         logger.error('Error in preview Events middleware:', error);
@@ -103,21 +75,10 @@ export async function reviewEvents(ctx: MyContext, next: NextFunction,): Promise
     try {
         if (!ctx.chat) return;
 
-        // schedule a job 10 min after all the events in the calendar
-        if (ctx.session.review) {
-        
-            let events = ctx.session.calendar?.events;                                     // get the events from the calendar    
-            events = events?.filter(event => new Date(event.start) > new Date());
-            if (!events) return;
+        if (ctx.session.reviewChanged) {
+            logger.debug('updating review events')
 
-            for (const event of events) {
-                createReviewJob(new Date(event.end), event.summary, ctx);
-            }
-
-        }else {
-            logger.info('cleaning review jobs')
-            reviewJobs[ctx.chat.id]?.forEach(job => job?.cancel());
-            delete reviewJobs[ctx.chat.id];
+            updateReviewJobs(ctx);
         }
     }
     catch (error) {
@@ -129,6 +90,86 @@ export async function reviewEvents(ctx: MyContext, next: NextFunction,): Promise
 }
 
 
+export function updateDailyJobs(ctx: MyContext) {
+
+    if (!ctx.chat) return;
+
+    // Schedule a job to send daily events at a specific time (e.g., 9 AM)
+    if (ctx.session.daily && Object.keys(dailyJobs).length === 0) {                                                                        // if the user wants to receive daily events
+        // the job
+
+        const jobid = `daily: alle 9`;
+        // Unique identifier for the job
+        const job = schedule.scheduleJob('0 9 * * *', async () => {
+            if (!ctx.session.calendar) return;
+            const dailyEvents = getDailyEvents(ctx.session.calendar);
+            // Assuming ctx.chat.id is the user's chat ID
+            await ctx.reply(dailyEvents);
+        });
+
+        dailyJobs[ctx.chat.id] = job;                                                               // store the job in the dailyJobs object
+        userjobsid[ctx.chat.id] = [...(userjobsid[ctx.chat.id] || []), jobid];                     // store the job id in the userjobsid object
+
+    }
+    if (!ctx.session.daily) {
+        // Cancel the job if the user doesn't want to receive daily events
+        const job = dailyJobs[ctx.chat.id];
+        if (job) {
+            job.cancel();
+            delete dailyJobs[ctx.chat.id];
+        }
+    }
+
+}
+
+
+export function updatePreviewJobs(ctx: MyContext) {
+
+    if (!ctx.chat) return;
+
+
+    if (ctx.session.preview) {
+
+        let events = ctx.session.calendar?.events;                                     // get the events from the calendar    
+        events = events?.filter(event => new Date(event.start) > new Date());       // filter out the events that are already passed
+        if (!events) return;
+
+        for (const event of events) {
+            createPreviewJob(new Date(event.start), event.summary, ctx);
+        }
+
+    } else {
+        logger.debug('cleaning preview jobs')
+        previewJobs[ctx.chat.id]?.forEach(job => job?.cancel());
+        userjobsid[ctx.chat.id] = [];
+
+        delete previewJobs[ctx.chat.id];
+    }
+}
+
+export function updateReviewJobs(ctx: MyContext) {
+
+    if (!ctx.chat) return;
+
+    // schedule a job 10 min after all the events in the calendar
+    if (ctx.session.review) {
+
+        ctx.session.reviewChanged = false;
+        let events = ctx.session.calendar?.events;                                     // get the events from the calendar    
+        events = events?.filter(event => new Date(event.start) > new Date());
+        if (!events) return;
+
+        for (const event of events) {
+            createReviewJob(new Date(event.end), event.summary, ctx);
+        }
+
+    } else {
+        logger.info('cleaning review jobs')
+        reviewJobs[ctx.chat.id]?.forEach(job => job?.cancel());
+        delete reviewJobs[ctx.chat.id];
+    }
+
+}
 
 
 
@@ -145,7 +186,7 @@ export function createPreviewJob(date: Date, event: string, ctx: MyContext) {
 
 
 
-    const jobid = `id-${formatter.format(date.getTime())} - ${event.substring(0,5)}-preview`; // Unique identifier for the job
+    const jobid = `id-${formatter.format(date.getTime())} - ${event.substring(0, 5)}-preview`; // Unique identifier for the job
 
     if (!userjobsid[ctx.chat.id]?.includes(jobid)) {
         const job = schedule.scheduleJob(jobid, date, async () => {
@@ -154,11 +195,11 @@ export function createPreviewJob(date: Date, event: string, ctx: MyContext) {
 
         previewJobs[ctx.chat.id] = [...(previewJobs[ctx.chat.id] || []), job];
         userjobsid[ctx.chat.id] = [...(userjobsid[ctx.chat.id] || []), jobid];
-        id+=1;
+        id += 1;
 
     }
 
-  
+
 }
 
 export function createReviewJob(date: Date, event: string, ctx: MyContext) {
@@ -166,12 +207,12 @@ export function createReviewJob(date: Date, event: string, ctx: MyContext) {
     if (!ctx.chat) return;
 
 
-    date.setMinutes(date.getMinutes() + 10 );
+    date.setMinutes(date.getMinutes() + 10);
 
-    const jobid = `${formatter.format(date.getTime())}- ${event.substring(0,5)}- review`; // Unique identifier for the job
+    const jobid = `${formatter.format(date.getTime())}- ${event.substring(0, 5)}- review`; // Unique identifier for the job
 
     if (!userjobsid[ctx.chat.id]?.includes(jobid)) {
-         const job = schedule.scheduleJob(date, async () => {
+        const job = schedule.scheduleJob(date, async () => {
             await ctx.conversation.enter('review');
         });
 

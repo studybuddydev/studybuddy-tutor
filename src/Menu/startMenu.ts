@@ -142,13 +142,14 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
         (ctx: MyContext) => ctx.from && ctx.session.daily ? "🔔 daily" : "🔕 daily",
         (ctx) => {
             ctx.session.daily = !ctx.session.daily;
+            ctx.session.dailyChanged = true;
             ctx.menu.update(); // update the menu!
         })
     .text(
         (ctx: MyContext) => ctx.from && ctx.session.preview ? "🔔 preview" : "🔕 preview",
         async (ctx) => {
             ctx.session.preview = !ctx.session.preview;
-
+            ctx.session.previewChanged = true;
             ctx.menu.update(); // update the menu!
         },
     )
@@ -156,6 +157,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
         (ctx: MyContext) => ctx.from && ctx.session.review ? "🔔 review" : "🔕 review",
         (ctx) => {
             ctx.session.review = !ctx.session.review;
+            ctx.session.reviewChanged = true;
             ctx.menu.update(); // update the menu!
         },
     )

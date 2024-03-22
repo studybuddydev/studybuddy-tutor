@@ -4,8 +4,11 @@ import { FileAdapter } from '@grammyjs/storage-file';
 
 export interface SessionData {
     preview: boolean;
+    previewChanged?: boolean;
     review: boolean;
+    reviewChanged?: boolean;
     daily: boolean;
+    dailyChanged?: boolean;
     isTester: boolean;
     isAdmin: boolean;
     wantsDocs: boolean;

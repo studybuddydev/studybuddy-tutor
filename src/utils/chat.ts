@@ -15,11 +15,17 @@ export async function handleMessage(ctx: MyContext) {
 
         const cat = getCatClient(`${ctx.from?.id}`)
 
-        logger.debug('sending message to cat')
+        cat?.onConnected(() => {
+            logger.debug('sending message to cat')
+            cat?.send(msg)
+        })
+            
 
-        
-        cat?.send(msg)
+
         ctx.replyWithChatAction('typing')
+
+
+
         cat?.onMessage(res => {
 
             if (res.type === 'chat') {
