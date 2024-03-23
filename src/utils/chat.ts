@@ -15,58 +15,7 @@ const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/`
 // handle message 
 export async function handleMessage(ctx: MyContext) {
     //is is a voice message 
-    if (ctx.message?.voice) {
-
-        const file = await ctx.getFile()
-        const filepath  =  fileUrl + file.file_path
-
-        if (!fileUrl) {
-            ctx.reply('non posso scaricare il file')
-            return
-        }
-
-        //download file from filpath
-        const tempPath = 'data/audio.ogg'
-        const writer = fs.createWriteStream(tempPath)
-
-
-
-        const response = await axios({
-            url: filepath,
-            method: 'GET',
-            responseType: 'stream'
-        })
-
-        await response.data.pipe(writer)
-        await new Promise(resolve => writer.on('finish', resolve));
-
-        console.log('file downloaded')
-
-
-        //wait 5 second 
-        
-
-
-        const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath) , model: "whisper-1", language: "it"});
-
-        ctx.reply(JSON.stringify(transcription.text));
-
-
-        // const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text. Make sure that the names of the following products are spelled correctly: StudyBuddy Only add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian";
-        // const completion = await openai.chat.completions.create({
-        //     model: "gpt-3.5-turbo-0125",
-        //     messages: [
-        //         { role: "system", content: systemPrompt },
-        //         { role: "user", content: transcription.text },
-        //     ],
-        // });
-        console.log(transcription.text)
-
-       // ctx.reply(JSON.stringify(completion.choices[0].message.content))
-
-        //ctx.reply('non posso gestire messaggi vocali')
-        return
-    }
+    if(!ctx.message) return
 
     const msg = ctx.message?.text as string
     if (msg.startsWith('/')) return
@@ -97,6 +46,57 @@ export async function handleMessage(ctx: MyContext) {
     } else {
         ctx.reply('attiva la chat da /settings')
     }
+}
+
+
+export async function handleVoice(ctx: MyContext) {
+    const file = await ctx.getFile()
+    const filepath  =  fileUrl + file.file_path
+
+    if (!fileUrl) {
+        ctx.reply('non posso scaricare il file')
+        return
+    }
+
+    //download file from filpath
+    const tempPath = 'data/audio.ogg'
+    const writer = fs.createWriteStream(tempPath)
+
+
+
+    const response = await axios({
+        url: filepath,
+        method: 'GET',
+        responseType: 'stream'
+    })
+
+    await response.data.pipe(writer)
+    await new Promise(resolve => writer.on('finish', resolve));
+
+    console.log('file downloaded')
+
+
+    //wait 5 second 
+    
+
+    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath) , model: "whisper-1", language: "it"});
+
+    ctx.reply(JSON.stringify(transcription.text));
+
+
+    // const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text. Make sure that the names of the following products are spelled correctly: StudyBuddy Only add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian";
+    // const completion = await openai.chat.completions.create({
+    //     model: "gpt-3.5-turbo-0125",
+    //     messages: [
+    //         { role: "system", content: systemPrompt },
+    //         { role: "user", content: transcription.text },
+    //     ],
+    // });
+    console.log(transcription.text)
+
+   // ctx.reply(JSON.stringify(completion.choices[0].message.content))
+
+    //ctx.reply('non posso gestire messaggi vocali')
 }
 
 

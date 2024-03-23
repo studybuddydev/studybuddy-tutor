@@ -74,10 +74,9 @@ async function main(){
   //chat 
   logger.debug('loading chat handlers')
   bot.on(':photo', chat.handlePhoto); // if you put this after message it will not be evaluated
-
+  bot.on(':voice', chat.handleVoice); // per farlo funzionare bisogna levarlo dal middleware on message
   bot.on('message', chat.handleMessage);
   bot.on(':document', chat.handleDocument);
-  bot.on(':voice', (ctx) => ctx.reply('non supporto i vocali')); // per farlo funzionare bisogna levarlo dal middleware on message
 
 
   //await bot.api.setMyCommands(cmd.myCommands);
