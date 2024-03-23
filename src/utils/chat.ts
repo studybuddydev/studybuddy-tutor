@@ -5,7 +5,6 @@ import logger from 'euberlog'
 import fs from 'fs'
 import axios from 'axios'
 
-import { PassThrough } from 'stream';
 
 
 
@@ -27,10 +26,8 @@ export async function handleMessage(ctx: MyContext) {
         }
 
         //download file from filpath
-        const writer = fs.createWriteStream('data/audio.ogg')
-
-        const passThroughStream = new PassThrough();
-
+        const tempPath = 'data/audio.ogg'
+        const writer = fs.createWriteStream(tempPath)
 
 
 
@@ -41,13 +38,16 @@ export async function handleMessage(ctx: MyContext) {
         })
 
         await response.data.pipe(writer)
+        await new Promise(resolve => writer.on('finish', resolve));
+
+        console.log('file downloaded')
+
 
         //wait 5 second 
-        await new Promise(resolve => setTimeout(resolve, 1000));
         
 
 
-        const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream('data/audio.ogg') , model: "whisper-1", language: "it"});
+        const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath) , model: "whisper-1", language: "it"});
 
         ctx.reply(JSON.stringify(transcription.text));
 
