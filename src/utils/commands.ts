@@ -38,6 +38,22 @@ logging.debug(ctx.from + '')
   ctx.reply('help')
 }
 
+
+
+export async function pomoCommand(ctx: MyContext) {
+    // get call at api.studybuddy.it
+
+    const pomo = await axios.get('https://api.studybuddy.it/status/franchrome@gmail.com')
+    const startedat = new Date(pomo.data.startedAt)
+    const end = new Date(pomo.data.end)
+    const now = new Date()
+    const elapsed = now.getTime() - startedat.getTime()
+
+    ctx.reply(`Pomodoro in corso: ${Math.floor(elapsed / 1000)} secondi`)
+
+    logger.debug('pomo', pomo.data)
+}
+
 export async function getDailyCommand(ctx: MyContext) {
     if (!ctx.session.calendar) {
         ctx.reply('non hai ancora aggiunto un calendario, /addcalendar')
