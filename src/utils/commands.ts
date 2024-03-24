@@ -4,11 +4,23 @@ import { dailyJobs, previewJobs, reviewJobs } from './notification'
 import logging from 'euberlog'
 import axios from 'axios';
 import { settingsMenu, todoMenu } from './bin/menu';
+import { rootMenu } from '../Menu/startMenu';
 import { openai } from './ai';
 import logger from 'euberlog';
 import * as schedule from 'node-schedule';
 import fs from 'fs';
 
+async function getCalendarMsg(calendar: Calendar | undefined) {
+    if (!calendar) {
+        return 'non hai ancora aggiunto un calendario, /addcalendar'
+    }
+
+
+    const nextEvents = getNextEvents(calendar);
+    const msg = 'il calendario ' + calendar.title + ' ha ' + calendar.events.length + ' eventi e ' + nextEvents
+ 
+    return msg
+}
 
 
 export const myCommands = [
@@ -28,6 +40,16 @@ export async function startCommand(ctx: MyContext) {
     logging.debug(ctx.from + '')
     const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
     await ctx.reply(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+}
+
+export async function calendarCommand(ctx: MyContext) {
+    const calendarText = await getCalendarMsg(ctx.session.calendar);
+    await ctx.reply(calendarText, { reply_markup: rootMenu, parse_mode: 'MarkdownV2'});
+}
+
+export async function notificationCommand(ctx: MyContext) {
+    const notificationMsg = fs.readFileSync('./src/messages/notification.md', 'utf8');
+    await ctx.reply(notificationMsg, { reply_markup: rootMenu, parse_mode: 'MarkdownV2'});
 }
 
 

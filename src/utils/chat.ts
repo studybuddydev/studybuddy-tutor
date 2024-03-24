@@ -4,6 +4,7 @@ import 'dotenv/config'
 import logger from 'euberlog'
 import fs from 'fs'
 import axios from 'axios'
+import sharp from 'sharp'
 
 
 
@@ -15,7 +16,7 @@ const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/`
 // handle message 
 export async function handleMessage(ctx: MyContext) {
     //is is a voice message 
-    if(!ctx.message) return
+    if(!ctx.message?.text) return
 
     const msg = ctx.message?.text as string
     if (msg.startsWith('/')) return
@@ -50,6 +51,7 @@ export async function handleMessage(ctx: MyContext) {
 
 
 export async function handleVoice(ctx: MyContext) {
+
     const file = await ctx.getFile()
     const filepath  =  fileUrl + file.file_path
 
@@ -57,6 +59,7 @@ export async function handleVoice(ctx: MyContext) {
         ctx.reply('non posso scaricare il file')
         return
     }
+    logger.info('processing voice message')
 
     //download file from filpath
     const tempPath = 'data/audio.ogg'
@@ -79,22 +82,22 @@ export async function handleVoice(ctx: MyContext) {
     //wait 5 second 
     
 
-    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath) , model: "whisper-1", language: "it"});
+    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath) , model: "whisper-1", language: "en"});
 
     ctx.reply(JSON.stringify(transcription.text));
-
-
-    // const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text. Make sure that the names of the following products are spelled correctly: StudyBuddy Only add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian";
-    // const completion = await openai.chat.completions.create({
-    //     model: "gpt-3.5-turbo-0125",
-    //     messages: [
-    //         { role: "system", content: systemPrompt },
-    //         { role: "user", content: transcription.text },
-    //     ],
-    // });
     console.log(transcription.text)
 
-   // ctx.reply(JSON.stringify(completion.choices[0].message.content))
+
+    const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text. Make sure that the names of the following products are spelled correctly: StudyBuddy, extract possible exam dates or relevent information ,add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian";
+    const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo-0125",
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: transcription.text },
+        ],
+    });
+
+    ctx.reply(JSON.stringify(completion.choices[0].message.content))
 
     //ctx.reply('non posso gestire messaggi vocali')
 }
@@ -152,6 +155,9 @@ export async function handlePhoto(ctx: MyContext) {
 
     console.log(photoUrl)
 
+    //resize image
+   // const resizedImage = await sharp(photoUrl).resize(200, 200).toBuffer()
+
 
 
 
@@ -167,6 +173,7 @@ export async function handlePhoto(ctx: MyContext) {
                         type: "image_url",
                         image_url: {
                             "url": photoUrl,
+                            "detail" : "low"
                         },
                     },
                 ],
@@ -174,7 +181,7 @@ export async function handlePhoto(ctx: MyContext) {
         ],
     })
     ctx.reply(JSON.stringify(response.choices[0].message));
-    ctx.reply(JSON.stringify(response.choices[1].message));
+    //ctx.reply(JSON.stringify(response.choices[1].message));
 
 
     console.log(response.choices[0]);
@@ -184,6 +191,6 @@ export async function handlePhoto(ctx: MyContext) {
 
 
 
-
+ 
 }
 

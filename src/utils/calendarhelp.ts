@@ -41,7 +41,7 @@ export function getNextEvents(calendar: Calendar, n: number = 3) {
         const start = new Date(event.start).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
         const end = new Date(event.end).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });
         const date = new Date(event.start).toLocaleDateString('it-IT', { weekday: 'short', day: 'numeric' });
-        nextEventsString += `${date}, ${start} - ${end} \n${event.summary}\n\n`;
+        nextEventsString += `${date}, ${start} \\- ${end} \n${event.summary}\n\n`;
     });
 
     if (nextEventsString === "I tuoi prossimi eventi:\n\n") {

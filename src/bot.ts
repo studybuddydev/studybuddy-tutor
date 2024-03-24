@@ -56,6 +56,10 @@ async function main(){
   //commands 
   logger.debug('loading commands')
   bot.command('start', cmd.startCommand);
+  bot.command('calendar', cmd.calendarCommand);
+  bot.command('notification', cmd.notificationCommand);
+
+
   bot.command('daily', cmd.getDailyCommand);
   bot.command("nextevents", cmd.nextEventsCommand);
   bot.command("jobs", cmd.logJobsCommand);

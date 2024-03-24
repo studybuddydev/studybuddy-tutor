@@ -65,24 +65,25 @@ async function editMsgFile(ctx: MyContext) {
     }
 }
 
+async function editMsgChat(ctx: MyContext) {
+    
+        if (!ctx.from) return
+    
+        const chatMsg = fs.readFileSync('./src/messages/chat.md', 'utf8');
+    
+        try {
+            await ctx.editMessageText(chatMsg, { reply_markup: rootMenu, parse_mode: 'MarkdownV2' });
+    
+        } catch (e) {
+            logger.warning(e as string);
+        }
+    }
+
 
 export const rootMenu = new Menu<MyContext>("root-menu")
     .submenu((ctx: MyContext) => ctx.from && ctx.session.calendar ? "📆 Calendario ✅" : "📆 Calendario  ❌", "calendar-menu", editMsgCalendar)
     .submenu("🔔 Notifiche 🔕", "notification-menu", editMsgListNotification).row()
-    .text(
-        (ctx: MyContext) => ctx.from && ctx.session.wantsChat ? "💬 chat ✅" : "💬 chat ❌",
-        async (ctx) => {
-            if (!ctx.session.isTester) {
-                await ctx.reply('per utilizzare la chat devi essere un tester certificato, contattaci')
-            } else {
-                ctx.session.wantsChat = !ctx.session.wantsChat;
-                if (ctx.session.wantsChat) {
-                    getCatClient(`${ctx.from?.id}`)
-                }
-                ctx.menu.update(); // update the menu!
-            }
-
-        })
+    .submenu((ctx: MyContext) => ctx.from && ctx.session.wantsChat ? "💬 chat ✅" : "💬 chat ❌", "chat-menu", editMsgChat)
     .submenu((ctx: MyContext) => ctx.from && ctx.session.wantsDocs ? "📁 files ✅" : "📁 files ❌", "file-menu", editMsgFile)
 
 
@@ -107,7 +108,7 @@ const fileMenu = new Menu<MyContext>("file-menu")
 
 
 //calendar menu 
-const calendarMenu = new Menu<MyContext>("calendar-menu")
+export const calendarMenu = new Menu<MyContext>("calendar-menu")
     .text(
         (ctx: MyContext) => ctx.from && ctx.session.calendar ? "aggiorna calendario" : "aggiungi calendario",
         async (ctx) => {
@@ -201,7 +202,34 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
 
 
 
+const chatMenu = new Menu<MyContext>("chat-menu")
+    .text(
+        (ctx: MyContext) => ctx.from && ctx.session.wantsChat ? "attiva chat ✅" : "disattiva chat ❌",
+        async (ctx) => {
+            if (!ctx.session.isTester) {
+                await ctx.reply('per utilizzare la chat devi essere un tester certificato, contattaci')
+            } else {
+                ctx.session.wantsChat = !ctx.session.wantsChat;
+                if (ctx.session.wantsChat) {
+                    getCatClient(`${ctx.from?.id}`)
+                }
+                ctx.menu.update(); // update the menu!
+            }
 
+        })
+    .back("Go Back", async (ctx) => {
+            
+            try {
+                const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
+                await ctx.editMessageText(welcomeText, { reply_markup: rootMenu, parse_mode: 'MarkdownV2' });
+            } catch (e) { logger.error(e as string) }
+        });
+
+
+
+
+// Register the submenus
 rootMenu.register(notificationSettings);
 rootMenu.register(calendarMenu);
 rootMenu.register(fileMenu);
+rootMenu.register(chatMenu);
