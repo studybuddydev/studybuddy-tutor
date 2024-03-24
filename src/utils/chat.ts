@@ -55,6 +55,8 @@ export async function handleVoice(ctx: MyContext) {
     const file = await ctx.getFile()
     const filepath  =  fileUrl + file.file_path
 
+    if (!ctx.session.isAdmin) return
+
     if (!fileUrl) {
         ctx.reply('non posso scaricare il file')
         return
@@ -142,6 +144,9 @@ export async function handleDocument(ctx: MyContext) {
 //handle photo
 export async function handlePhoto(ctx: MyContext) {
     ctx.reply('grazie, ora faccio le mie magie')
+
+    if (!ctx.session.isAdmin) return
+
 
     const photo = await ctx.getFile()
     if (!photo) {
