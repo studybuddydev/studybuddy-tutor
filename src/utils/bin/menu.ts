@@ -2,7 +2,7 @@ import { Menu , MenuRange } from "@grammyjs/menu";
 import { MyContext } from '../types';
 import logger from 'euberlog';
 import { get } from 'http';
-import {getNextEvents } from '../calendarhelp';
+import {getNextEventsMsg} from '../calendarhelp';
 import { createPreviewJob, previewJobs, reviewJobs, userjobsid, formatter } from '../notification';
 import { getCatClient  } from '../ai';
 import fs from 'fs';
@@ -41,7 +41,7 @@ async function editMsgCalendar(ctx: MyContext) {
   if (!ctx.from) return
   if (!ctx.session.calendar) return
 
-  const nextEvents = getNextEvents(ctx.session.calendar);
+  const nextEvents = getNextEventsMsg(ctx.session.calendar);
   const msg = ctx.session.calendar ? 'il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi' : 'non hai un calendario'
 
   try {
@@ -118,7 +118,7 @@ const calendarMenu = new Menu<MyContext>("calendar-menu")
     ">",
     async (ctx) => {
       if (!ctx.session.calendar) return
-      const nextEvents = getNextEvents(ctx.session.calendar);
+      const nextEvents = getNextEventsMsg(ctx.session.calendar);
       try {
       await ctx.editMessageText('il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi e ' + nextEvents)
       }catch (e) { logger.error(e as string)}

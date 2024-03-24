@@ -38,7 +38,7 @@ export async function addcalendario(conversation: MyConversation, ctx: MyContext
 // after a lesson it asks you if you went
 export async function reviewLesson(conversation: MyConversation, ctx: MyContext) {
     const keyboard = new Keyboard().text("Si").text("No").resized().oneTime(true);
-    await ctx.reply("ciao è finita la lezione di franco, sei andato?", { reply_markup: keyboard, });
+    await ctx.reply("ciao è finita la lezione, sei andato?", { reply_markup: keyboard, });
 
     const attendance = await conversation.form.text();
     let review: ReviewLesson = { attendance: false, title: '' };

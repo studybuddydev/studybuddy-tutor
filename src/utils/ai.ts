@@ -8,16 +8,10 @@ const { AUTH_KEY, URL, PORT } = process.env
 
 export const openai = new OpenAI();
 
-// export const cat = new CatClient({
-//   baseUrl: URL as any,
-//   user: "franco",
-//   port: PORT ? parseInt(PORT) : undefined,
-//   authKey: AUTH_KEY,
-// })
 
 const clients = new Map<string, CatClient>()
 
-
+// each user has a client
 export function getCatClient(userId: string) {
   if (clients.has(userId)) {
     logger.debug('client already exists')

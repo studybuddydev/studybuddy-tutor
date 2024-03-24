@@ -1,30 +1,25 @@
 import { Calendar, MyContext } from './types'
-import { getDailyEvents, getNextEvents, refreshCalendar } from './calendarhelp'
+import { getDailyEvents, getNextEventsMsg, refreshCalendar } from './calendarhelp'
 import { dailyJobs, previewJobs, reviewJobs } from './notification'
 import logging from 'euberlog'
 import axios from 'axios';
 import { settingsMenu, todoMenu } from './bin/menu';
-import { rootMenu } from '../Menu/startMenu';
+import { calendarMenu, rootMenu, notificationMenu, chatMenu} from '../Menu/startMenu';
 import { openai } from './ai';
 import logger from 'euberlog';
 import * as schedule from 'node-schedule';
 import fs from 'fs';
 
-async function getCalendarMsg(calendar: Calendar | undefined) {
-    if (!calendar) {
-        return 'non hai ancora aggiunto un calendario, /addcalendar'
-    }
 
-
-    const nextEvents = getNextEvents(calendar);
-    const msg = 'il calendario ' + calendar.title + ' ha ' + calendar.events.length + ' eventi e ' + nextEvents
- 
-    return msg
-}
 
 
 export const myCommands = [
     { command: "start", description: "Start the bot" },
+    { command: "calendar", description: "setta il calendario e visualizza gli eventi"},
+    { command: "notification", description: "setta le notifiche e visualizza le prossime" },
+    { command: "chat", description: "attiva e disattiva la chat" },
+
+    { command: "todo", description: "todo" },
     { command: "help", description: "debug stuff" },
     { command: "settings", description: "settings" },
     { command: "review", description: "review lesson" },
@@ -39,17 +34,26 @@ export const myCommands = [
 export async function startCommand(ctx: MyContext) {
     logging.debug(ctx.from + '')
     const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
-    await ctx.reply(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+    await ctx.reply(welcomeText, { reply_markup: rootMenu, parse_mode: 'MarkdownV2'});
 }
 
 export async function calendarCommand(ctx: MyContext) {
-    const calendarText = await getCalendarMsg(ctx.session.calendar);
-    await ctx.reply(calendarText, { reply_markup: rootMenu, parse_mode: 'MarkdownV2'});
+    const calendarText = await getNextEventsMsg(ctx.session.calendar);
+    await ctx.reply(calendarText, { reply_markup: calendarMenu, parse_mode: 'MarkdownV2'});
+    
+ 
 }
 
 export async function notificationCommand(ctx: MyContext) {
     const notificationMsg = fs.readFileSync('./src/messages/notification.md', 'utf8');
-    await ctx.reply(notificationMsg, { reply_markup: rootMenu, parse_mode: 'MarkdownV2'});
+    await ctx.reply(notificationMsg, { reply_markup: notificationMenu, parse_mode: 'MarkdownV2'});
+}
+
+export async function chatCommand(ctx: MyContext) {
+    const chatMsg = fs.readFileSync('./src/messages/chat.md', 'utf8');
+    await ctx.reply(chatMsg, { reply_markup: chatMenu, parse_mode: 'MarkdownV2'});
+
+
 }
 
 
@@ -110,7 +114,7 @@ export async function nextEventsCommand(ctx: MyContext) {
 
     }
 
-    const nextEvents = getNextEvents(calendar)
+    const nextEvents = getNextEventsMsg(calendar)
 
     ctx.reply(nextEvents)
 

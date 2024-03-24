@@ -24,7 +24,11 @@ export async  function refreshCalendar(ctx: MyContext) {
       
 }
 
-export function getNextEvents(calendar: Calendar, n: number = 3) {
+
+export function getNextEventsMsg(calendar: Calendar | undefined, n: number = 3) {
+    if (!calendar) {
+        return 'Non hai ancora aggiunto un calendario'
+    }
 
     // sort calendar by date
     const today = new Date()
@@ -35,7 +39,7 @@ export function getNextEvents(calendar: Calendar, n: number = 3) {
     //sort by date
     nextEvents.sort((a, b) => new Date(a.start).getTime() - new Date(b.start).getTime());
 
-    let nextEventsString = "I tuoi prossimi eventi:\n\n"
+    let nextEventsString = 'il calendario ' + calendar.title + ' ha ' + calendar.events.length + ' eventi e ' 
     // get next 3 events with date and time
     nextEvents.slice(0, n).forEach(event => {
         const start = new Date(event.start).toLocaleTimeString('it-IT', { hour: '2-digit', minute: '2-digit' });

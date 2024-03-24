@@ -58,32 +58,32 @@ async function main(){
   bot.command('start', cmd.startCommand);
   bot.command('calendar', cmd.calendarCommand);
   bot.command('notification', cmd.notificationCommand);
+  bot.command('chat', cmd.chatCommand);
+  bot.command('todo', cmd.todoCommand);
 
-
+  bot.command('refresh', cmd.refreshCalendarCommand);
   bot.command('daily', cmd.getDailyCommand);
   bot.command("nextevents", cmd.nextEventsCommand);
-  bot.command("jobs", cmd.logJobsCommand);
   bot.command("addcalendar", cmd.addCalendarCommand);
+  bot.command("jobs", cmd.logJobsCommand);
   bot.command("review", cmd.reviewLessonCommand);
-  bot.command('refresh', cmd.refreshCalendarCommand);
   bot.command('buddha', cmd.buddhaCommand);
   bot.command('image', cmd.imageCommand);
   bot.command('help', cmd.helpCommand);
   bot.command('settings', cmd.settingsCommand);
   bot.command('admin', cmd.adminCommand);
-  bot.command('todo', cmd.todoCommand);
   //bot.command('pomo', cmd.pomoCommand);
 
 
   //chat 
   logger.debug('loading chat handlers')
   bot.on(':photo', chat.handlePhoto); // if you put this after message it will not be evaluated
-  bot.on(':voice', chat.handleVoice); // per farlo funzionare bisogna levarlo dal middleware on message
-  bot.on('message', chat.handleMessage);
+  bot.on(':voice', chat.handleVoice); 
   bot.on(':document', chat.handleDocument);
+  bot.on('message', chat.handleMessage);
 
 
-  //await bot.api.setMyCommands(cmd.myCommands);
+  await bot.api.setMyCommands(cmd.myCommands);
 
   bot.start({ drop_pending_updates: true });
   logger.info('bot started')

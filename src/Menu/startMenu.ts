@@ -2,9 +2,10 @@ import { Menu, MenuRange } from "@grammyjs/menu";
 import { MyContext } from './../utils/types';
 import logger from 'euberlog';
 import { get } from 'http';
-import { getNextEvents } from './../utils/calendarhelp';
+import { getNextEventsMsg, refreshCalendar } from './../utils/calendarhelp';
 import * as notific from './../utils/notification';
 import { getCatClient } from './../utils/ai';
+
 import fs from 'fs';
 import * as schedule from 'node-schedule';
 // rootMenu used to handle notification of the bot
@@ -41,11 +42,10 @@ async function editMsgCalendar(ctx: MyContext) {
     if (!ctx.from) return
     if (!ctx.session.calendar) return
 
-    const nextEvents = getNextEvents(ctx.session.calendar);
-    const msg = ctx.session.calendar ? 'il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi' : 'non hai un calendario'
+    const msg = getNextEventsMsg(ctx.session.calendar);
 
     try {
-        await ctx.editMessageText(msg + '\n' + nextEvents);
+        await ctx.editMessageText(msg, {parse_mode: 'MarkdownV2' });
     } catch (e) {
         logger.warning(e as string);
     }
@@ -87,7 +87,7 @@ export const rootMenu = new Menu<MyContext>("root-menu")
     .submenu((ctx: MyContext) => ctx.from && ctx.session.wantsDocs ? "📁 files ✅" : "📁 files ❌", "file-menu", editMsgFile)
 
 
-const fileMenu = new Menu<MyContext>("file-menu")
+export const fileMenu = new Menu<MyContext>("file-menu")
     .text(
         (ctx: MyContext) => ctx.from && !ctx.session.wantsDocs ? "📁 entra nella waitlist 📁" : "📁 sei nella waitilist ✅",
         async (ctx) => {
@@ -116,10 +116,16 @@ export const calendarMenu = new Menu<MyContext>("calendar-menu")
 
         })
     .text(
+        "refresh",
+        async (ctx) => {
+            await refreshCalendar(ctx)
+            ctx.menu.update()
+        })
+    .text(
         ">",
         async (ctx) => {
             if (!ctx.session.calendar) return
-            const nextEvents = getNextEvents(ctx.session.calendar);
+            const nextEvents = getNextEventsMsg(ctx.session.calendar);
             try {
                 await ctx.editMessageText('il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi e ' + nextEvents)
             } catch (e) { logger.error(e as string) }
@@ -138,7 +144,7 @@ export const calendarMenu = new Menu<MyContext>("calendar-menu")
 
 
 //notification menu
-const notificationSettings = new Menu<MyContext>("notification-menu")
+export const notificationMenu = new Menu<MyContext>("notification-menu")
     .text(
         (ctx: MyContext) => ctx.from && ctx.session.daily ? "🔔 daily" : "🔕 daily",
         (ctx) => {
@@ -202,7 +208,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
 
 
 
-const chatMenu = new Menu<MyContext>("chat-menu")
+export const chatMenu = new Menu<MyContext>("chat-menu")
     .text(
         (ctx: MyContext) => ctx.from && ctx.session.wantsChat ? "attiva chat ✅" : "disattiva chat ❌",
         async (ctx) => {
@@ -229,7 +235,7 @@ const chatMenu = new Menu<MyContext>("chat-menu")
 
 
 // Register the submenus
-rootMenu.register(notificationSettings);
+rootMenu.register(notificationMenu);
 rootMenu.register(calendarMenu);
 rootMenu.register(fileMenu);
 rootMenu.register(chatMenu);
