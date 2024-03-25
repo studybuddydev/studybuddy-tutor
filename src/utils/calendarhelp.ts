@@ -1,15 +1,57 @@
 
-import getIcsUri from './calendar';
+//import getIcsUri from './calendar';
 import ical from 'node-ical';
 import { Event, Calendar, MyContext } from './types';
 import logger from 'euberlog';
+import URI from 'urijs';
 
 // Load the environment variables from the .env file.
 //calendars for testing
 const url = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&include=corso&txtcurr=1+-+Computational+and+theoretical+modelling+of+language+and+cognition&anno=2023&corso=0708H&anno2%5B%5D=P0407%7C1&date=14-09-2023&_lang=en&highlighted_date=0&_lang=en&all_events=1&'
 const url2 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=2+-+Economics+and+Management&anno=2023&corso=0117G&anno2%5B%5D=P0201%7C2&date=25-02-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0'
 const url3 = 'https://easyacademy.unitn.it/AgendaStudentiUnitn/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+Scienze+e+Tecnologie+Informatiche&anno=2023&corso=0514G&anno2%5B%5D=P0405%7C1&date=01-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
-//const url4 = 'https://calendari.unibs.it/PortaleStudenti/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+GENERALE+-+Cognomi+M-Z&anno=2023&scuola=IngegneriaMeccanicaeIndustriale&corso=05742&anno2%5B%5D=3%7C1&visualizzazione_orario=cal&date=07-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
+const url4 = 'https://calendari.unibs.it/PortaleStudenti/index.php?view=easycourse&form-type=corso&include=corso&txtcurr=1+-+GENERALE+-+Cognomi+M-Z&anno=2023&scuola=IngegneriaMeccanicaeIndustriale&corso=05742&anno2%5B%5D=3%7C1&visualizzazione_orario=cal&date=07-03-2024&periodo_didattico=&_lang=en&list=&week_grid_type=-1&ar_codes_=&ar_select_=&col_cells=0&empty_box=0&only_grid=0&highlighted_date=0&all_events=0&faculty_group=0#'
+
+
+
+
+function getIcsFromUrl(url: string) {
+    const uri = URI(url)
+
+    const hostname = uri.hostname()
+    //remove the index.php
+
+    const path = uri.path().replace('index.php', '') + 'export/ec_download_ical_list.php'
+
+    const newUri = new URI({
+        protocol: uri.protocol(),
+        hostname: hostname,
+        path: path,
+    })
+
+    let old_search = uri.search(true);
+
+    newUri.search(
+        { "include": "corso"
+        , "anno": old_search["anno"]
+        , "corso": old_search["corso"]
+        , "anno2[]": old_search["anno2[]"]
+        , "ar_codes_": old_search["ar_codes_"]
+        , "ar_select_": old_search["ar_select_"]
+    });
+
+    const finalUri = newUri.toString() + '&dummy.ics'
+
+    return finalUri
+}
+
+//remove the index.php
+
+
+
+
+
+
 
 
 // calendar stuff
@@ -96,7 +138,7 @@ export async function getEvents(url: string) {
     logger.info('getting events from ', url)
 
     if (!url.endsWith('.ics')) {  //university url 
-        url = getIcsUri(url) as any
+        url = getIcsFromUrl(url) as any
         logger.info('url is not ics')
     }
 
