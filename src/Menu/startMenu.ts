@@ -210,7 +210,7 @@ export const notificationMenu = new Menu<MyContext>("notification-menu")
 
 export const chatMenu = new Menu<MyContext>("chat-menu")
     .text(
-        (ctx: MyContext) => ctx.from && ctx.session.wantsChat ? "attiva chat ✅" : "disattiva chat ❌",
+        (ctx: MyContext) => ctx.from && ctx.session.wantsChat ? "disattiva chat ✅" : "attiva chat ❌",
         async (ctx) => {
             if (!ctx.session.isTester) {
                 await ctx.reply('per utilizzare la chat devi essere un tester certificato, contattaci')

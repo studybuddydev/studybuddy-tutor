@@ -33,6 +33,7 @@ export const myCommands = [
 //start command
 export async function startCommand(ctx: MyContext) {
     logging.debug(ctx.from + '')
+    ctx.session.username = ctx.from?.username || ctx.from?.first_name || '';
     const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
     await ctx.reply(welcomeText, { reply_markup: rootMenu, parse_mode: 'MarkdownV2'});
 }

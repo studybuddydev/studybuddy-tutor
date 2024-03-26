@@ -3,6 +3,7 @@ import { Calendar } from './types';
 import { FileAdapter } from '@grammyjs/storage-file';
 
 export interface SessionData {
+    username?: string;
     preview: boolean;
     previewChanged?: boolean;
     review: boolean;
