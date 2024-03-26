@@ -8,7 +8,8 @@ import sharp from 'sharp'
 
 
 import puppeteer, { Page } from 'puppeteer';
-const url ="https://unitn.coursecatalogue.cineca.it/insegnamenti/2023/87758/2008/10003/10114?coorte=2023"
+import { InputFile } from 'grammy'
+const url = "https://unitn.coursecatalogue.cineca.it/insegnamenti/2023/87758/2008/10003/10114?coorte=2023"
 
 
 
@@ -27,7 +28,7 @@ export async function handleMessage(ctx: MyContext) {
     const msg = ctx.message?.text as string
     if (msg.startsWith('/')) return
 
-    if(msg.startsWith('https://unitn.coursecatalogue')) {
+    if (msg.startsWith('https://unitn.coursecatalogue')) {
         await scrapeSyllabus(ctx)
     }
 
@@ -209,6 +210,15 @@ export async function handlePhoto(ctx: MyContext) {
 
 }
 
+interface CourseInfo {
+    name: string;
+    chapters: string[];
+    books: string;
+    examDetails: string;
+    learningGoals: string;
+    methods: string;
+}
+
 
 
 
@@ -235,24 +245,37 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
 
     await page.waitForSelector('.accordion');
 
-    // Extract all information
+    // unico modo di farlo funzionare, ho provato a tirare fuori sta funzione per pulire un po' il codice ma non funziona
     const infoElements = await page.$$eval('.accordion > dt, .accordion > dd', (elements: Element[]) => {
-        const data: { title: string; items: string[] }[] = [];
-        let currentGroup: { title: string; items: string[] } = { title: '', items: [] };
+        let currentGroup: Partial<CourseInfo> = {};
 
-        elements.forEach(element => {
+        for (const element of elements) {
             if (element.tagName === 'DT') {
-                // New group
-                currentGroup = { title: element.textContent!.trim(), items: [] };
-                data.push(currentGroup);
+                currentGroup.name = element.textContent!.trim();
             } else if (element.tagName === 'DD') {
-                // Items
                 const item = element.textContent!.trim();
-                currentGroup.items.push(item);
+                switch (currentGroup?.name) {
+                    case 'Contenuti':
+                        currentGroup.chapters = item.split('-').map(chapter => chapter.trim()).filter(chapter => chapter !== '');
+                        break;
+                    case 'Testi':
+                        currentGroup.books = item
+                    case 'Obiettivi formativi':
+                        currentGroup.learningGoals = item;
+                        break;
+                    case 'Metodi didattici':
+                        currentGroup.methods = item;
+                        break;
+                    case 'Verifica dell\'apprendimento':
+                        currentGroup.examDetails = item;
+                        break;
+                    default:
+                        break;
+                }
             }
-        });
+        }
 
-        return data;
+        return currentGroup as CourseInfo;
     });
 
 
@@ -261,11 +284,15 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
 
     //save to a json file 
     const fs = require('fs');
-    fs.writeFileSync('info.json', JSON.stringify(infoElements, null, 2));
+    fs.writeFileSync('esame.json', JSON.stringify(infoElements, null, 2));
 
 
     await browser.close();
+    const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(infoElements, null, 2)), 'esame.json')
+
+    ctx.replyWithDocument(inputfile)
 
 
-    ctx.reply('ho scrapato il corso di '+ title) 
+
 }
+
