@@ -27,6 +27,10 @@ export async function handleMessage(ctx: MyContext) {
     const msg = ctx.message?.text as string
     if (msg.startsWith('/')) return
 
+    if(msg.startsWith('https://unitn.coursecatalogue')) {
+        await scrapeSyllabus(ctx)
+    }
+
     if (ctx.session.wantsChat) {
 
         const cat = getCatClient(`${ctx.from?.id}`)
@@ -208,7 +212,7 @@ export async function handlePhoto(ctx: MyContext) {
 
 
 
-async function scrapeSyllabus(): Promise<void> {
+async function scrapeSyllabus(ctx: MyContext): Promise<void> {
     const browser = await puppeteer.launch();
     const page: Page = await browser.newPage();
     await page.goto(url, { waitUntil: 'networkidle0' }); // Replace with your target web app URL
@@ -260,7 +264,8 @@ async function scrapeSyllabus(): Promise<void> {
     fs.writeFileSync('info.json', JSON.stringify(infoElements, null, 2));
 
 
-
-
     await browser.close();
+
+
+    ctx.reply('ho scrapato il corso di '+ title) 
 }
