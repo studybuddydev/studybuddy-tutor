@@ -7,6 +7,12 @@ import axios from 'axios'
 import sharp from 'sharp'
 
 
+import puppeteer, { Page } from 'puppeteer';
+const url ="https://unitn.coursecatalogue.cineca.it/insegnamenti/2023/87758/2008/10003/10114?coorte=2023"
+
+
+
+
 
 
 const BOT_TOKEN = process.env.BOT_TOKEN as string
@@ -16,7 +22,7 @@ const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/`
 // handle message 
 export async function handleMessage(ctx: MyContext) {
     //is is a voice message 
-    if(!ctx.message?.text) return
+    if (!ctx.message?.text) return
 
     const msg = ctx.message?.text as string
     if (msg.startsWith('/')) return
@@ -53,7 +59,7 @@ export async function handleMessage(ctx: MyContext) {
 export async function handleVoice(ctx: MyContext) {
 
     const file = await ctx.getFile()
-    const filepath  =  fileUrl + file.file_path
+    const filepath = fileUrl + file.file_path
 
     if (!ctx.session.isAdmin) return
 
@@ -82,9 +88,9 @@ export async function handleVoice(ctx: MyContext) {
 
 
     //wait 5 second 
-    
 
-    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath) , model: "whisper-1", language: "en"});
+
+    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath), model: "whisper-1", language: "en" });
 
     ctx.reply(JSON.stringify(transcription.text));
     console.log(transcription.text)
@@ -161,7 +167,7 @@ export async function handlePhoto(ctx: MyContext) {
     console.log(photoUrl)
 
     //resize image
-   // const resizedImage = await sharp(photoUrl).resize(200, 200).toBuffer()
+    // const resizedImage = await sharp(photoUrl).resize(200, 200).toBuffer()
 
 
 
@@ -178,7 +184,7 @@ export async function handlePhoto(ctx: MyContext) {
                         type: "image_url",
                         image_url: {
                             "url": photoUrl,
-                            "detail" : "low"
+                            "detail": "low"
                         },
                     },
                 ],
@@ -196,6 +202,65 @@ export async function handlePhoto(ctx: MyContext) {
 
 
 
- 
+
 }
 
+
+
+
+async function scrapeSyllabus(): Promise<void> {
+    const browser = await puppeteer.launch();
+    const page: Page = await browser.newPage();
+    await page.goto(url, { waitUntil: 'networkidle0' }); // Replace with your target web app URL
+
+    await page.waitForSelector('app-root', { timeout: 5000 });
+
+    // Example: Extract the title of the page
+    const pageTitle: string = await page.title();
+    console.log(`Page Title: ${pageTitle}`);
+
+    console.log(page)
+
+    await page.waitForSelector('.u-filetto');
+
+    // Extract the title text
+    const title = await page.$eval('.u-filetto', element => element.textContent);
+
+
+    console.log(`Title: ${title}`);
+
+    await page.waitForSelector('.accordion');
+
+    // Extract all information
+    const infoElements = await page.$$eval('.accordion > dt, .accordion > dd', (elements: Element[]) => {
+        const data: { title: string; items: string[] }[] = [];
+        let currentGroup: { title: string; items: string[] } = { title: '', items: [] };
+
+        elements.forEach(element => {
+            if (element.tagName === 'DT') {
+                // New group
+                currentGroup = { title: element.textContent!.trim(), items: [] };
+                data.push(currentGroup);
+            } else if (element.tagName === 'DD') {
+                // Items
+                const item = element.textContent!.trim();
+                currentGroup.items.push(item);
+            }
+        });
+
+        return data;
+    });
+
+
+
+    console.log('Information:', infoElements);
+
+    //save to a json file 
+    const fs = require('fs');
+    fs.writeFileSync('info.json', JSON.stringify(infoElements, null, 2));
+
+
+
+
+    await browser.close();
+}
