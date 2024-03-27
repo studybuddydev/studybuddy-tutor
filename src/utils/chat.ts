@@ -9,7 +9,7 @@ import sharp from 'sharp'
 
 import puppeteer, { Page } from 'puppeteer';
 import { InputFile } from 'grammy'
-const url = "https://unitn.coursecatalogue.cineca.it/insegnamenti/2023/87758/2008/10003/10114?coorte=2023"
+//const url = "https://unitn.coursecatalogue.cineca.it/insegnamenti/2023/87758/2008/10003/10114?coorte=2023"
 
 
 
@@ -30,6 +30,7 @@ export async function handleMessage(ctx: MyContext) {
 
     if (msg.startsWith('https://unitn.coursecatalogue')) {
         await scrapeSyllabus(ctx)
+        return
     }
 
     if (ctx.session.wantsChat) {
@@ -221,20 +222,16 @@ interface CourseInfo {
 
 
 
-
+// get url of a syllabus from unitn course catalogue and scrape it 
 async function scrapeSyllabus(ctx: MyContext): Promise<void> {
     const browser = await puppeteer.launch();
     const page: Page = await browser.newPage();
+    const url = ctx.message?.text as string
     await page.goto(url, { waitUntil: 'networkidle0' }); // Replace with your target web app URL
 
     await page.waitForSelector('app-root', { timeout: 5000 });
 
-    // Example: Extract the title of the page
-    const pageTitle: string = await page.title();
-    console.log(`Page Title: ${pageTitle}`);
-
-    console.log(page)
-
+   
     await page.waitForSelector('.u-filetto');
 
     // Extract the title text
@@ -256,7 +253,7 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
                 const item = element.textContent!.trim();
                 switch (currentGroup?.name) {
                     case 'Contenuti':
-                        currentGroup.chapters = item.split('-').map(chapter => chapter.trim()).filter(chapter => chapter !== '');
+                        currentGroup.chapters = [item]//.split('-').map(chapter => chapter.trim()).filter(chapter => chapter !== '');
                         break;
                     case 'Testi':
                         currentGroup.books = item
@@ -274,6 +271,7 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
                 }
             }
         }
+        info
 
         return currentGroup as CourseInfo;
     });
@@ -283,12 +281,16 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
     console.log('Information:', infoElements);
 
     //save to a json file 
-    const fs = require('fs');
-    fs.writeFileSync('esame.json', JSON.stringify(infoElements, null, 2));
+
 
 
     await browser.close();
-    const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(infoElements, null, 2)), 'esame.json')
+
+    const processedSyllabus = await processSyllabus(infoElements)
+    const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(processedSyllabus, null, 2)), processSyllabus.name + '.json')
+
+    const fs = require('fs');
+    fs.writeFileSync('esame.json', JSON.stringify(infoElements, null, 2));
 
     ctx.replyWithDocument(inputfile)
 
@@ -296,3 +298,31 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
 
 }
 
+async function processSyllabus(syllabus: CourseInfo) {
+
+
+    const systemPrompt = `You are a helpful studybuddy for university students, you are given in input a string with the content of the course, 
+                        you should infer the chapters and the section( if present), give the output in json format with the following structure:
+                      {chapters: [{ name: string, sections: string[]}]`
+
+    const completion = await openai.chat.completions.create({
+        model: "gpt-3.5-turbo-0125",
+        messages: [
+            { role: "system", content: systemPrompt },
+            { role: "user", content: syllabus.chapters[0] },
+        ],
+    });
+
+    console.log(completion.choices[0].message.content)
+    if (!completion.choices[0].message.content) return
+
+    const chapters = JSON.parse(completion.choices[0].message.content)
+
+    syllabus.chapters = chapters.chapters.map((chapter: any) => chapter)
+
+
+    return syllabus
+}
+
+// const filesyl = JSON.parse(fs.readFileSync('esame.json', 'utf8')) as CourseInfo
+// processSyllabus(filesyl)

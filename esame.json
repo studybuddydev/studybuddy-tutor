@@ -1,14 +1,138 @@
 {
   "name": "Verifica dell'apprendimento",
   "chapters": [
-    "Linguaggi regolari e analisi lessicale",
-    "Linguaggi liberi da contesto e analisi sintattica",
-    "Analisi semantica e tabelle dei simboli",
-    "Generazione di codice intermedio",
-    "Gestione della memoria"
+    {
+      "name": "Introduzione",
+      "sections": [
+        "Contesto storico e relazioni con l'HW",
+        "Ruolo del sistema operativo e sua evoluzione",
+        "Elementi architetturali",
+        "Struttura e funzioni di un sistema operativo"
+      ]
+    },
+    {
+      "name": "Gestione dei Processi",
+      "sections": [
+        "Processi",
+        "Stati dei processi",
+        "Cambiamento di contesto",
+        "Creazione e terminazione di processi",
+        "Thread: thread a livello utente e a livello kernel",
+        "Cooperazione e comunicazione fra processi: memoria condivisa, messaggi",
+        "Comunicazione diretta ed indiretta"
+      ]
+    },
+    {
+      "name": "Scheduling",
+      "sections": [
+        "Modello a ciclo di burst di CPU-I/O",
+        "Scheduling a lungo, medio, breve termine",
+        "Scheduling con prelazione e cooperativo",
+        "Criteri di scheduling",
+        "Algoritmi di scheduling: FCFS, SJF, a priorità, HRRN, RR, a code multiple con e senza feedback",
+        "Valutazione degli algoritmi: modelli deterministici e probabilistici, simulazione"
+      ]
+    },
+    {
+      "name": "Sincronizzazione fra processi",
+      "sections": [
+        "Coerenza di dati condivisi, operazioni atomiche",
+        "Sezioni critiche",
+        "Approccio software alla mutua esclusione: algoritmi di Peterson e Dekker, algoritmo del panettiere",
+        "Supporto hardware per la mutua esclusione: test and set, swap",
+        "Costrutti per sincronizzazione: semafori e monitor",
+        "Alcuni problemi tipici di sincronizzazione: produttore/consumatore, lettori/scrittore, problema dei filosofi"
+      ]
+    },
+    {
+      "name": "Deadlock",
+      "sections": [
+        "Condizioni per l'innesco di un deadlock",
+        "Rappresentazione dello stato di un sistema con grafi di allocazione",
+        "Tecniche di prevenzione, rilevazione e ripristino",
+        "Algoritmo del banchiere"
+      ]
+    },
+    {
+      "name": "Gestione della memoria",
+      "sections": [
+        "Memoria primaria",
+        "Indirizzamento logico e fisico",
+        "Rilocazione, binding degli indirizzi",
+        "Swapping",
+        "Allocazione contigua della memoria",
+        "Frammentazione interna ed esterna",
+        "Paginazione",
+        "Supporti hardware alla paginazione: TLB",
+        "Tabella delle pagine",
+        "Paginazione a piu' livelli",
+        "Segmentazione",
+        "Tabella dei segmenti",
+        "Segmentazione con paginazione"
+      ]
+    },
+    {
+      "name": "Memoria Virtuale",
+      "sections": [
+        "Paginazione su richiesta",
+        "Gestione di page fault",
+        "Algoritmi di sostituzione delle pagine: FIFO, ottimale, LRU, approssimazioni LRU",
+        "Buffering di pagine",
+        "Allocazione di frame in memoria fisica, allocazione locale o globale",
+        "Thrashing",
+        "Località dei riferimenti",
+        "Modello del working set",
+        "Controllo della frequenza di page fault",
+        "Blocco di pagine in memoria"
+      ]
+    },
+    {
+      "name": "Memoria secondaria",
+      "sections": [
+        "Struttura logica e fisica dei dischi",
+        "Tempo di latenza",
+        "Scheduling del disco: algoritmi FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK",
+        "Gestione della memoria di paginazione",
+        "Strutture RAID"
+      ]
+    },
+    {
+      "name": "File System",
+      "sections": [
+        "Concetto di file, attributi e operazioni relative",
+        "Tipi di file",
+        "Accesso sequenziale e diretto",
+        "Concetto di directory",
+        "Struttura di directory",
+        "Protezioni nell'accesso a file",
+        "Attributi e modalità di accesso",
+        "Semantica della consistenza",
+        "Struttura di un file system",
+        "Montaggio di un file system",
+        "Metodi di allocazione dello spazio su disco: contiguo, concatenato, indicizzato",
+        "Gestione dello spazio libero su disco: tramite vettore di bit, tramite liste",
+        "Realizzazione delle directory: liste lineari, tabelle hash"
+      ]
+    },
+    {
+      "name": "Sistema di I/O",
+      "sections": [
+        "Sistemi di Input/Output, Hardware per I/O",
+        "Tecniche di I/O: programmato, con interrupt, con DMA",
+        "Device driver e interfaccia verso le applicazioni",
+        "Servizi del kernel per I/O: scheduling, buffering, caching, spooling"
+      ]
+    },
+    {
+      "name": "Casi di studio",
+      "sections": [
+        "Unix e Linux",
+        "Lezioni di laboratorio usando Linux"
+      ]
+    }
   ],
-  "books": "Riferimento principale:- Introduction to Compiler Design (Second Edition), Torben AEgidius Mogensen, Springer, 2017, 978-3319669656(Una versione preliminare del testo e' disponibile alla pagina http://hjemmesider.diku.dk/~torbenm/Basics/index.html)Testi di consultazione:- Compilers: Principles, Techniques, and Tools (2nd edition); Alfred V. Aho, Monica S. Lam, Ravi Sethi, Jeffrey D. Ullman; Prentice Hall, 2006.- Automata and computability; Dexter Kozen; Springer, 1999.- Briefly on Bottom-up; Paola Quaglia; CoRR abs/1807.05555; http://arxiv.org/abs/1807.05555; 2018.",
-  "learningGoals": "Lo scopo del corso e' introdurre le nozioni fondamentali dei linguaggi formali e gli strumenti per la progettazione di compilatori di linguaggi di programmazione.I principi e le tecnologie della compilazione trovano numerose applicazioni in aree ortogonali a quella dei linguaggi di programmazione (e.g., analisi di linguaggi naturali; analisi e controllo di correttezza sintattica di query).Lo studente apprendera' tecniche ed algoritmi per la progettazione del front-end di compilatori e per la gestione e progettazione di applicazioni per l'analisi e la trasformazione di testi.",
-  "methods": "Lezioni in aula.Il materiale relativo al corso, gli avvisi, etc., sono resi disponibili alla pagina Moodle del corso.Gli argomenti vengono presentati mostrando anche la loro applicazione a istanze specifiche. Gli esercizi svolti in classe sono selezionati sia per agevolare la comprensione della materia che per evidenziare strutture e soluzioni prototipali. La comprensione degli esempi e degli esercizi contribuisce in modo rilevante all'acquisizione di competenza nella materia.Attivita' di apprendimento che saranno richieste allo studente: studio delle strutture e degli algoritmi presentati in aula (conoscenza); ri-elaborazione degli argomenti e degli esempi presentati in aula (dimostrazione di padronanza della materia, competenza).",
-  "examDetails": "- L'esame consiste in una prova scritta e in una prova orale.Entrambe le prove sono volte a verificare sia l'ampiezza che la profondita' delle conoscenze acquisite.- L'esame scritto e' \"closed books\" e \"no electronics\" (libri, appunti, etc., cellulari, palmari, etc. non sono ammessi) e consiste di 10 domande aperte che prevedono risposte sintetiche. Ciascuna risposta viene valutata 3/30 se corretta e 0/30 altrimenti.- All'esame orale sono ammessi solo i candidati che hanno ottenuto un voto di almeno 18/30 allo scritto. All'orale vengono poste domande che prevedono risposte discorsive o richiedono lo svolgimento di esercizi di ri-elaborazione degli argomenti appresi.- Il voto finale e' determinato dalla media dei voti ottenuti nella prova scritta (50%) e in quella orale (50%). La lode e' attribuita a chi, avendo superato lo scritto con 30/30, supera l'esame orale in modo eccellente.- L'iscrizione su esse3 e' obbligatoria ed e' responsabilita' dello studente. L'eventuale cancellazione dell'iscrizione e' anch'essa responsabilita' dello studente interessato. In caso di iscrizione e no-show lo studente non e' ammesso all'appello successivo.- La verbalizzazione dell'esame avviene al completamento dell'appello. Si consiglia di rispettare la propedeuticita' del test di inglese B1 e di tenere in considerazione il relativo warning emesso da esse3 al momento dell'iscrizione all'esame."
+  "books": "Operating System Concepts 10th Edition, Abraham Silberschatz, Peter Baer Galvin, Greg Gagne, John Wiley & Sons, Inc., ISBN: 978-1-118-06333-0, 2018 (in inglese)in alternativa la versione in italianoSistemi Operativi, 10 Edizione, Abraham Silberschatz, Peter Baer Galvin, Greg Gagne, Pearson Education ItaliaTesti alternativi ugualmente utilizzabili sono:S. Tanenbaum, H. Bos Modern Operating Systems, 5th edition, Prentice-Hall. ISBN-13: 978-0137618873 (in inglese)S. Tanenbaum, H. Bos I moderni sistemi operativi. 2019, Pearson Education Italia ISBN-10: 8891906255Testi integrativiUnderstanding the Linux KernelD.P. Bovet & M. Cesati, 3 Edizione (in italiano)O'Reilly, ISBN: 0-596-00565-2P. Ancillotti, M. Boari Principi e tecniche di programmazione concorrente, Ed. UTET LibreriaThe C Programming Language, Second EditionBrian W. Kernighan e Dennis M. Ritchie.Prentice Hall, Inc., 1988.ISBN 0-13-110362-8Linux for Programmers and UsersG. Glass and K. Ables,Pearson Prentice Hall, ISBN: 0-13-185748-7",
+  "learningGoals": "Obiettivo dell'insegnamento è quello di fornire i concetti fondamentali chesono alla base dei moderni sistemi operativi, con particolare enfasisulla gestione della concorrenza, della memoria e del file system. Ogni concetto sarà trattato dal punto di vista teorico. Per i concetti più importanti la trattazione riguarderà anche aspetti più pratici in modo da familiarizzare con loro la complessità realizzativa.Al termine dell'insegnamento, lo studente sarà in grado di comprenderel'architettura di un sistema operativo, di capire come sono progettate e implementate le principali funzionalità di un sistema operativo, di confrontare e valutare le diverse soluzioni progettuali e implementative.",
+  "methods": "L'attività didattica comprende lezioni frontali in aula coadiuvate dall'uso di slide, che illustrano i principi e i concetti teorici.Durante le lezioni in aula verranno anche presentati esercizi, esempi di programmi e di sistemi operativi esistenti come utile ausilio per la comprensione della teoria dei sistemi operativi.Oltre alle lezioni in aula, il corso prevede ogni settimana anche lezioni in laboratorio in cui verranno presentati, discussi e realizzati dagli studenti esercizi pratici per comprendere come sono realizzati alcuni concetti teorici discussi durante le lezioni in aula.Il materiale didattico (slide, esercizi) è reso disponibile nel sito del corso sul sistema Didattica OnLine.Eventuali comunicazioni agli studenti, relative al corso verranno fatte tramite la funzionalità \"Annunci\" della stessa piattaforma.",
+  "examDetails": "La verifica di apprendimento consiste in due prove. Una prima una prova di laboratorio riguardante la parte pratica del corso seguita da una prova scritta per la parte teorica.La modalità di svolgimento di ogni verifica di apprendimento programmata è la seguente. Lo studente deve superare prima la prova di laboratorio a cui seguirà poi la prova scritta. Il voto finale del corso è dato dalla media del voto della prova di laboratorio e del voto della prova di teoria. E' necessario prendere almeno la sufficienza in entrambe le prove.Il non superamento di anche una sola delle due prove, prevede la ripetizione dell'intera verifica di apprendimento (laboratorio e teorica).La prova scritta valutata da 0 a 30/30, comprende esercizi per la soluzione di problemi di gestione della memoria, del file system, e domande a carattere teorico a risposta aperta volte a valutare la capacità dello studente di esporre in modo critico i concetti visti a lezione.La prova scritta di laboratorio invece, include esercizi di programmazione, problemi di sincronizzazione e concorrenza e domande teoriche solo sul contenuto delle lezioni di laboratorio. E' individuale e valutata da 0 a 30/30. La prova di laboratorio è volta a valutare la capacità di applicare e valutare in modo critico le conoscenze acquisite durante le lezioni di laboratorio."
 }
