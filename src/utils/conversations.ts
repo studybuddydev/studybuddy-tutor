@@ -30,7 +30,7 @@ export async function addcalendario(conversation: MyConversation, ctx: MyContext
        await ctx.reply('Aggiunti ' + calendar.events.length + ' eventi al calendario');
     } catch (error) {
         console.error('Error fetching calendar events:', error);
-        await ctx.reply('Sorry, there was an error fetching the calendar events. Please try again later.');
+        await ctx.reply('Sorry, there was an error fetching the calendar events\. Please try again later.');
     }
 
 }

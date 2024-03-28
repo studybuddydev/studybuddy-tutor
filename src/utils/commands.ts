@@ -40,7 +40,7 @@ export async function startCommand(ctx: MyContext) {
 
 export async function calendarCommand(ctx: MyContext) {
     const calendarText = await getNextEventsMsg(ctx.session.calendar);
-    await ctx.reply(calendarText, { reply_markup: calendarMenu, parse_mode: 'MarkdownV2'});
+    await ctx.reply(calendarText, { reply_markup: calendarMenu});
     
  
 }

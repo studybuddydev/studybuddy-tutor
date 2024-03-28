@@ -240,7 +240,7 @@ const deleteTodoMenu = new Menu<MyContext>("delete-todo")
 
           let msg = 'hai ' + ctx.session.todo?.length + ' cose da fare: \n'
           ctx.session.todo?.forEach((todo, index) => {
-              msg += `\n${index + 1}. ${todo}`;
+              msg += `\n${index + 1} ${todo}`;
           });
           ctx.editMessageText(msg)
           ctx.answerCallbackQuery({text: "todo eliminato",});
