@@ -9,6 +9,7 @@ import sharp from 'sharp'
 
 import puppeteer, { Page } from 'puppeteer';
 import { InputFile } from 'grammy'
+import { info } from 'console'
 //const url = "https://unitn.coursecatalogue.cineca.it/insegnamenti/2023/87758/2008/10003/10114?coorte=2023"
 
 
@@ -271,12 +272,12 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
                 }
             }
         }
-        info
+
 
         return currentGroup as CourseInfo;
     });
 
-
+    infoElements.name = title?.trim() || 'no title found';
 
     console.log('Information:', infoElements);
 
@@ -287,7 +288,7 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
     await browser.close();
 
     const processedSyllabus = await processSyllabus(infoElements)
-    const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(processedSyllabus, null, 2)), processSyllabus.name + '.json')
+    const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(processedSyllabus, null, 2)), processedSyllabus?.name + '.json')
 
     const fs = require('fs');
     fs.writeFileSync('esame.json', JSON.stringify(infoElements, null, 2));
@@ -301,14 +302,14 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
 async function processSyllabus(syllabus: CourseInfo) {
 
 
-    const systemPrompt = `You are a helpful studybuddy for university students, you are given in input a string with the content of the course, 
+    const systemPromptChapters = `You are a helpful studybuddy for university students, you are given in input a string with the content of the course, 
                         you should infer the chapters and the section( if present), give the output in json format with the following structure:
                       {chapters: [{ name: string, sections: string[]}]`
 
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo-0125",
         messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: systemPromptChapters },
             { role: "user", content: syllabus.chapters[0] },
         ],
     });
@@ -319,6 +320,9 @@ async function processSyllabus(syllabus: CourseInfo) {
     const chapters = JSON.parse(completion.choices[0].message.content)
 
     syllabus.chapters = chapters.chapters.map((chapter: any) => chapter)
+
+
+    
 
 
     return syllabus

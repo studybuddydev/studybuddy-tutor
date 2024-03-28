@@ -1,138 +1,53 @@
 {
-  "name": "Verifica dell'apprendimento",
+  "name": "[135007] - Psicologia sociale",
   "chapters": [
     {
-      "name": "Introduzione",
+      "name": "La psicologia sociale",
       "sections": [
-        "Contesto storico e relazioni con l'HW",
-        "Ruolo del sistema operativo e sua evoluzione",
-        "Elementi architetturali",
-        "Struttura e funzioni di un sistema operativo"
+        "campi e metodi di indagine"
       ]
     },
     {
-      "name": "Gestione dei Processi",
+      "name": "La cognizione sociale",
+      "sections": []
+    },
+    {
+      "name": "La percezione degli altri",
       "sections": [
-        "Processi",
-        "Stati dei processi",
-        "Cambiamento di contesto",
-        "Creazione e terminazione di processi",
-        "Thread: thread a livello utente e a livello kernel",
-        "Cooperazione e comunicazione fra processi: memoria condivisa, messaggi",
-        "Comunicazione diretta ed indiretta"
+        "prime impressioni e processi di attribuzione"
       ]
     },
     {
-      "name": "Scheduling",
-      "sections": [
-        "Modello a ciclo di burst di CPU-I/O",
-        "Scheduling a lungo, medio, breve termine",
-        "Scheduling con prelazione e cooperativo",
-        "Criteri di scheduling",
-        "Algoritmi di scheduling: FCFS, SJF, a priorità, HRRN, RR, a code multiple con e senza feedback",
-        "Valutazione degli algoritmi: modelli deterministici e probabilistici, simulazione"
-      ]
+      "name": "Il sé",
+      "sections": []
     },
     {
-      "name": "Sincronizzazione fra processi",
-      "sections": [
-        "Coerenza di dati condivisi, operazioni atomiche",
-        "Sezioni critiche",
-        "Approccio software alla mutua esclusione: algoritmi di Peterson e Dekker, algoritmo del panettiere",
-        "Supporto hardware per la mutua esclusione: test and set, swap",
-        "Costrutti per sincronizzazione: semafori e monitor",
-        "Alcuni problemi tipici di sincronizzazione: produttore/consumatore, lettori/scrittore, problema dei filosofi"
-      ]
+      "name": "Atteggiamenti e persuasione",
+      "sections": []
     },
     {
-      "name": "Deadlock",
-      "sections": [
-        "Condizioni per l'innesco di un deadlock",
-        "Rappresentazione dello stato di un sistema con grafi di allocazione",
-        "Tecniche di prevenzione, rilevazione e ripristino",
-        "Algoritmo del banchiere"
-      ]
+      "name": "Influenza sociale",
+      "sections": []
     },
     {
-      "name": "Gestione della memoria",
-      "sections": [
-        "Memoria primaria",
-        "Indirizzamento logico e fisico",
-        "Rilocazione, binding degli indirizzi",
-        "Swapping",
-        "Allocazione contigua della memoria",
-        "Frammentazione interna ed esterna",
-        "Paginazione",
-        "Supporti hardware alla paginazione: TLB",
-        "Tabella delle pagine",
-        "Paginazione a piu' livelli",
-        "Segmentazione",
-        "Tabella dei segmenti",
-        "Segmentazione con paginazione"
-      ]
+      "name": "Processi di gruppo",
+      "sections": []
     },
     {
-      "name": "Memoria Virtuale",
-      "sections": [
-        "Paginazione su richiesta",
-        "Gestione di page fault",
-        "Algoritmi di sostituzione delle pagine: FIFO, ottimale, LRU, approssimazioni LRU",
-        "Buffering di pagine",
-        "Allocazione di frame in memoria fisica, allocazione locale o globale",
-        "Thrashing",
-        "Località dei riferimenti",
-        "Modello del working set",
-        "Controllo della frequenza di page fault",
-        "Blocco di pagine in memoria"
-      ]
+      "name": "Pregiudizio, stereotipi e discriminazione",
+      "sections": []
     },
     {
-      "name": "Memoria secondaria",
-      "sections": [
-        "Struttura logica e fisica dei dischi",
-        "Tempo di latenza",
-        "Scheduling del disco: algoritmi FCFS, SSTF, SCAN, C-SCAN, LOOK, C-LOOK",
-        "Gestione della memoria di paginazione",
-        "Strutture RAID"
-      ]
+      "name": "Aggressività",
+      "sections": []
     },
     {
-      "name": "File System",
-      "sections": [
-        "Concetto di file, attributi e operazioni relative",
-        "Tipi di file",
-        "Accesso sequenziale e diretto",
-        "Concetto di directory",
-        "Struttura di directory",
-        "Protezioni nell'accesso a file",
-        "Attributi e modalità di accesso",
-        "Semantica della consistenza",
-        "Struttura di un file system",
-        "Montaggio di un file system",
-        "Metodi di allocazione dello spazio su disco: contiguo, concatenato, indicizzato",
-        "Gestione dello spazio libero su disco: tramite vettore di bit, tramite liste",
-        "Realizzazione delle directory: liste lineari, tabelle hash"
-      ]
-    },
-    {
-      "name": "Sistema di I/O",
-      "sections": [
-        "Sistemi di Input/Output, Hardware per I/O",
-        "Tecniche di I/O: programmato, con interrupt, con DMA",
-        "Device driver e interfaccia verso le applicazioni",
-        "Servizi del kernel per I/O: scheduling, buffering, caching, spooling"
-      ]
-    },
-    {
-      "name": "Casi di studio",
-      "sections": [
-        "Unix e Linux",
-        "Lezioni di laboratorio usando Linux"
-      ]
+      "name": "Comportamento prosociale",
+      "sections": []
     }
   ],
-  "books": "Operating System Concepts 10th Edition, Abraham Silberschatz, Peter Baer Galvin, Greg Gagne, John Wiley & Sons, Inc., ISBN: 978-1-118-06333-0, 2018 (in inglese)in alternativa la versione in italianoSistemi Operativi, 10 Edizione, Abraham Silberschatz, Peter Baer Galvin, Greg Gagne, Pearson Education ItaliaTesti alternativi ugualmente utilizzabili sono:S. Tanenbaum, H. Bos Modern Operating Systems, 5th edition, Prentice-Hall. ISBN-13: 978-0137618873 (in inglese)S. Tanenbaum, H. Bos I moderni sistemi operativi. 2019, Pearson Education Italia ISBN-10: 8891906255Testi integrativiUnderstanding the Linux KernelD.P. Bovet & M. Cesati, 3 Edizione (in italiano)O'Reilly, ISBN: 0-596-00565-2P. Ancillotti, M. Boari Principi e tecniche di programmazione concorrente, Ed. UTET LibreriaThe C Programming Language, Second EditionBrian W. Kernighan e Dennis M. Ritchie.Prentice Hall, Inc., 1988.ISBN 0-13-110362-8Linux for Programmers and UsersG. Glass and K. Ables,Pearson Prentice Hall, ISBN: 0-13-185748-7",
-  "learningGoals": "Obiettivo dell'insegnamento è quello di fornire i concetti fondamentali chesono alla base dei moderni sistemi operativi, con particolare enfasisulla gestione della concorrenza, della memoria e del file system. Ogni concetto sarà trattato dal punto di vista teorico. Per i concetti più importanti la trattazione riguarderà anche aspetti più pratici in modo da familiarizzare con loro la complessità realizzativa.Al termine dell'insegnamento, lo studente sarà in grado di comprenderel'architettura di un sistema operativo, di capire come sono progettate e implementate le principali funzionalità di un sistema operativo, di confrontare e valutare le diverse soluzioni progettuali e implementative.",
-  "methods": "L'attività didattica comprende lezioni frontali in aula coadiuvate dall'uso di slide, che illustrano i principi e i concetti teorici.Durante le lezioni in aula verranno anche presentati esercizi, esempi di programmi e di sistemi operativi esistenti come utile ausilio per la comprensione della teoria dei sistemi operativi.Oltre alle lezioni in aula, il corso prevede ogni settimana anche lezioni in laboratorio in cui verranno presentati, discussi e realizzati dagli studenti esercizi pratici per comprendere come sono realizzati alcuni concetti teorici discussi durante le lezioni in aula.Il materiale didattico (slide, esercizi) è reso disponibile nel sito del corso sul sistema Didattica OnLine.Eventuali comunicazioni agli studenti, relative al corso verranno fatte tramite la funzionalità \"Annunci\" della stessa piattaforma.",
-  "examDetails": "La verifica di apprendimento consiste in due prove. Una prima una prova di laboratorio riguardante la parte pratica del corso seguita da una prova scritta per la parte teorica.La modalità di svolgimento di ogni verifica di apprendimento programmata è la seguente. Lo studente deve superare prima la prova di laboratorio a cui seguirà poi la prova scritta. Il voto finale del corso è dato dalla media del voto della prova di laboratorio e del voto della prova di teoria. E' necessario prendere almeno la sufficienza in entrambe le prove.Il non superamento di anche una sola delle due prove, prevede la ripetizione dell'intera verifica di apprendimento (laboratorio e teorica).La prova scritta valutata da 0 a 30/30, comprende esercizi per la soluzione di problemi di gestione della memoria, del file system, e domande a carattere teorico a risposta aperta volte a valutare la capacità dello studente di esporre in modo critico i concetti visti a lezione.La prova scritta di laboratorio invece, include esercizi di programmazione, problemi di sincronizzazione e concorrenza e domande teoriche solo sul contenuto delle lezioni di laboratorio. E' individuale e valutata da 0 a 30/30. La prova di laboratorio è volta a valutare la capacità di applicare e valutare in modo critico le conoscenze acquisite durante le lezioni di laboratorio."
+  "books": "Bibliografia (per studenti/esse di sociologia)1) E. Aronson, T. Wilson, & S. Sommers (2019). Psicologia sociale. Il Mulino (escluso Cap. IX)2) un approfondimento a scelta tra i seguenti temi.Mascolinità - Pacilli, M. G. (2020). Uomini duri: il lato oscuro della mascolinità. Il mulino.Pregiudizio - Brambilla, M. e Sacchi, S. (a cura di) (2022). Psicologia sociale del pregiudizio. Raffaello Cortina Editore. Parte 1 e Parte 2, + due capitoli a scelta della Parte 3, 4 o 5.Altri temi verranno indicati nel corso delle lezioni per le studentesse e studenti che frequenteranno in modo continuativo le lezioni.3) Eventuale altro materiale indicato a lezione e messo a disposizione dalla docente sulla comunità online moodle del corso.Nel caso si ritenesse il testo E. Aronson, T. Wilson, & S. Sommers (2019). Psicologia sociale. Il Mulino non sufficientemente dettagliato si può consultare Myers, D. G., Twenge, J. M., Marta, E., Pozzi, M. (ed.), Psicologia Sociale, 3 ed., McGraw-Hill Education (Italy)Gli studenti e le studentesse appartenenti ad altri corsi di Laurea che intendono sostenere questo esame, sono pregati/e di contattare la docente (almeno due mesi prima dell'esame) per definire un programma di esame e relativa bibliografia.",
+  "learningGoals": "Il principale obiettivo del corso è quello di fornire alle studentesse e agli studenti in sociologia delle nozioni e conoscenze di base in psicologia sociale che possono essere utilizzate come strumenti di analisi dei fenomeni sociali anche complessi.In particolare, durante le lezioni e attraverso lo studio individuale, le studentesse e gli studenti dovrebbero conseguire i seguenti risultati formativi:- aver acquisito una buona conoscenza (ad es. quali sono gli antecedenti? quali le conseguenze? etc.) dei processi psicologici che hanno luogo quando gli individui si percepiscono, si influenzano e interagiscono tra loro;- aver acquisito una buona padronanza del linguaggio specifico della disciplina e delle teorie affrontate nel corso e nel libro di testo;- essere in grado di mettere in relazione conoscenze teoriche, ricerca empirica e realtà sociale (ad es. fornendo degli esempi dei processi e delle teorie studiate; selezionando, fra le conoscenze teoriche apprese, quelle che possono fornire degli strumenti di lettura e interpretazione di uno specifico fenomeno sociale).Inoltre, unitamente agli altri corsi, il presente dovrebbe contribuire a consolidare le capacita' di apprendimento autonomo, l'autonomia di giudizio e le abilità comunicative.",
+  "methods": "I metodi didattici e le attività di apprendimento sono varie in quanto volte a facilitare il raggiungimento degli obiettivi formativi del corso sia per coloro che frequentano regolarmente le lezioni in presenza che coloro che invece affronteranno i corsi con altre modalità.I metodi didattici e le attività di apprendimento includono:- lezioni in presenza con attività di confronto, discussione e apprendimento attivo- lezioni frontali in presenza- audio/video lezioni su alcuni temi affrontati nelle lezioni da usufruire in asincrono- leggere, comprendere e studiare i libri di testo e altro materiale fornito a lezione;- altre attività formative a scelta (ad es. partecipazione a ricerche, relazioni, etc.)- forum sulla comunità moodleMaggiori informazioni sul programma delle lezioni, le modalità didattiche e l'organizzazione del corso verrano date nella prima lezione e comunicate nella comunità online Moodle del corso, a cui è utile iscriversi da subito.Si chiede di leggere i capitoli relativamente agli argomenti trattati prima della lezione (seguire le indicazioni su didattica online durante il corso). Questo permette di apprendere meglio dalle lezioni stesse e rende più facile la partecipazione alla discussione in aula.",
+  "examDetails": "L'esame consiste in una prova scritta che può essere seguita, a discrezione dello/a studente, da un breve colloquio orale che si tiene il giorno stesso (generalmente nel pomeriggio). L’intenzione di sostenere l’orale va comunicata alla docente al momento dell’iscrizione o il giorno dell’esame scritto, prima di prendere visione delle domande. La prova scritta consiste in 4 domande aperte volte a verificare il conseguimento dei principali risultati formativi del corso ovvero le conoscenze acquisite e la capacità di mettere in relazione nozioni teoriche e interpretazione di fenomeni sociali. Ognuna di queste domande ha un peso equivalente nella valutazione finale. I criteri di valutazione delle domande aperte sono: (a) la completezza della risposta, intesa come pertinenza e accuratezza delle informazioni riportate; (b) l'uso appropriato del linguaggio proprio della disciplina; (c) la validità dell'argomentazione, e in particolare la capacità di definire antecedenti e conseguenze di un fenomeno; (d) l'efficacia comunicativa, espositiva e di sintesi.Nel corso delle lezioni verranno proposte delle ulteriori attività per la valutazione dell'apprendimento (ad es. redigere una breve relazione scritta su un tema di approfondimento). Queste attività sono rivolte alle studentesse e gli studenti che seguono le lezioni regolarmente. La partecipazione a queste attività sono su base volontaria, vanno concordate con la docente e non sostituiscono l'esame scritto.Maggiori informazioni su queste attività e anche sulle modalità di esame vengono comunicate nel sito della comunità online di moodle del corso."
 }
