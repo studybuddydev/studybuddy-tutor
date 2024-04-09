@@ -73,6 +73,8 @@ async function main(){
   bot.command('settings', cmd.settingsCommand);
   bot.command('admin', cmd.adminCommand);
 
+  
+
   //bot.command('pomo', cmd.pomoCommand);
 
 
@@ -82,7 +84,6 @@ async function main(){
   bot.on([':voice', ':audio'], chat.handleVoice); 
   bot.on(':document', chat.handleDocument);
   bot.on('message', chat.handleMessage);
-
 
 
   await bot.api.setMyCommands(cmd.myCommands);

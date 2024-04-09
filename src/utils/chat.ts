@@ -5,6 +5,7 @@ import logger from 'euberlog'
 import fs from 'fs'
 import axios from 'axios'
 import sharp from 'sharp'
+import { exec } from 'child_process';
 
 
 import puppeteer, { Page } from 'puppeteer';
@@ -19,6 +20,21 @@ import { info } from 'console'
 
 const BOT_TOKEN = process.env.BOT_TOKEN as string
 const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/`
+
+
+function compressAudio(input: string, output: string) {
+    const ffmpegCommand = `ffmpeg -i data/audio.ogg -vn -map_metadata -1 -ac 1 -c:a libopus -b:a 12k -application voip data/audiocompressed.ogg`;
+    console.log('compressing audio')
+    exec(ffmpegCommand, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`exec error: ${error}`);
+            return;
+        }
+        console.log(`stdout: ${stdout}`);
+        console.error(`stderr: ${stderr}`);
+    });
+
+}
 
 
 // handle message 
@@ -79,6 +95,7 @@ export async function handleVoice(ctx: MyContext) {
 
     //download file from filpath
     const tempPath = 'data/audio.ogg'
+    const tempPathCompressed = 'data/audiocompressed.ogg'
     const writer = fs.createWriteStream(tempPath)
 
 
@@ -95,16 +112,14 @@ export async function handleVoice(ctx: MyContext) {
     console.log('file downloaded')
 
 
-    //wait 5 second 
 
 
     const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath), model: "whisper-1", language: "en" });
 
-    ctx.reply(JSON.stringify(transcription.text));
     console.log(transcription.text)
 
 
-    const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text. Make sure that the names of the following products are spelled correctly: StudyBuddy, extract possible exam dates or relevent information ,add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian";
+    const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text.  add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian";
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo-0125",
         messages: [
@@ -112,8 +127,24 @@ export async function handleVoice(ctx: MyContext) {
             { role: "user", content: transcription.text },
         ],
     });
+    // if it is too long send it as a file
+    if (transcription.text.length < 4096) {
+        ctx.reply(JSON.stringify(transcription.text));
 
-    ctx.reply(JSON.stringify(completion.choices[0].message.content))
+        const correctedText = completion.choices[0].message.content
+        ctx.reply(JSON.stringify(correctedText))
+    } else 
+    {   //sent it as a file 
+
+        const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(transcription.text, null, 2)), 'transcription.txt')
+
+        ctx.replyWithDocument(inputfile)
+
+        const correctedText = completion.choices[0].message.content
+        const inputfile2: InputFile = new InputFile(Buffer.from(JSON.stringify(correctedText, null, 2)), 'corrected.txt')
+
+        ctx.replyWithDocument(inputfile2) 
+    }
 
     //ctx.reply('non posso gestire messaggi vocali')
 }
