@@ -64,6 +64,7 @@ export async function handleMessage(ctx: MyContext) {
 
 
 export async function handleVoice(ctx: MyContext) {
+    console.log('voice message')
 
     const file = await ctx.getFile()
     const filepath = fileUrl + file.file_path

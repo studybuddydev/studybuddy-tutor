@@ -72,15 +72,17 @@ async function main(){
   bot.command('help', cmd.helpCommand);
   bot.command('settings', cmd.settingsCommand);
   bot.command('admin', cmd.adminCommand);
+
   //bot.command('pomo', cmd.pomoCommand);
 
 
   //chat 
   logger.debug('loading chat handlers')
   bot.on(':photo', chat.handlePhoto); // if you put this after message it will not be evaluated
-  bot.on(':voice', chat.handleVoice); 
+  bot.on([':voice', ':audio'], chat.handleVoice); 
   bot.on(':document', chat.handleDocument);
   bot.on('message', chat.handleMessage);
+
 
 
   await bot.api.setMyCommands(cmd.myCommands);
