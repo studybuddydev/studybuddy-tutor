@@ -22,18 +22,21 @@ const BOT_TOKEN = process.env.BOT_TOKEN as string
 const fileUrl = `https://api.telegram.org/file/bot${BOT_TOKEN}/`
 
 
-function compressAudio(input: string, output: string) {
-    const ffmpegCommand = `ffmpeg -i data/audio.ogg -vn -map_metadata -1 -ac 1 -c:a libopus -b:a 12k -application voip data/audiocompressed.ogg`;
-    console.log('compressing audio')
-    exec(ffmpegCommand, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`exec error: ${error}`);
-            return;
-        }
-        console.log(`stdout: ${stdout}`);
-        console.error(`stderr: ${stderr}`);
+function compressAudio(): Promise<void> {
+    return new Promise((resolve, reject) => {
+        const ffmpegCommand = `ffmpeg -i data/audio.ogg -vn -map_metadata -1 -ac 1 -c:a libopus -b:a 12k -application voip data/audiocompressed.ogg -y`;
+        console.log('compressing audio');
+        exec(ffmpegCommand, (error, stdout, stderr) => {
+            if (error) {
+                console.error(`exec error: ${error}`);
+                reject(error);
+                return;
+            }
+            console.log(`stdout: ${stdout}`);
+            console.error(`stderr: ${stderr}`);
+            resolve();
+        });
     });
-
 }
 
 
@@ -100,6 +103,8 @@ export async function handleVoice(ctx: MyContext) {
 
 
 
+
+
     const response = await axios({
         url: filepath,
         method: 'GET',
@@ -111,10 +116,10 @@ export async function handleVoice(ctx: MyContext) {
 
     console.log('file downloaded')
 
+    await compressAudio()
 
 
-
-    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPath), model: "whisper-1", language: "en" });
+    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPathCompressed), model: "whisper-1", language: "it" });
 
     console.log(transcription.text)
 
