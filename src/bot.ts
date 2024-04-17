@@ -78,6 +78,7 @@ async function main(){
   bot.command('settings', cmd.settingsCommand);
   bot.command('admin', cmd.adminCommand);
   bot.command('bug', cmd.bugCommand);
+  bot.command('feature', cmd.featureCommand);
 
 
   

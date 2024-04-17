@@ -41,9 +41,19 @@ export async function bugCommand(ctx: MyContext) {
             title: text,
             type: 'bug'
         }
-
         await addFeedback(feedback)
+    }
+}
 
+export async function featureCommand(ctx: MyContext) {
+    if(ctx.message?.text != '/feature' && ctx.message?.text != undefined) {
+        
+        const text = ctx.message.text.replace('/feature', '').trim()
+        const feedback = {
+            title: text,
+            type: 'feature'
+        }
+        await addFeedback(feedback)
     }
 }
 
