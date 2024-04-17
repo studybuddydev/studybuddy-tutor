@@ -1,0 +1,45 @@
+{
+  "name": "[145008] - Basi di dati",
+  "chapters": [
+    {
+      "name": "Elementi di gestione dei dati nelle organizzazioni (data management)",
+      "sections": []
+    },
+    {
+      "name": "Progettazione concettuale: il modello Entità-Relazione",
+      "sections": []
+    },
+    {
+      "name": "Progettazione logica: il modello relazionale",
+      "sections": []
+    },
+    {
+      "name": "Un linguaggio dichiarativo per la gestione dei dati relazionali: lo Structured Query Language (SQL)",
+      "sections": []
+    },
+    {
+      "name": "Un linguaggio procedurale per la gestione dei dati: l'Algebra Relazionale",
+      "sections": []
+    },
+    {
+      "name": "Ottimizzazione del modello logico: la normalizzazione degli schemi relazionali",
+      "sections": []
+    },
+    {
+      "name": "Ottimizzazione del modello fisico: l'uso di indici sui dati",
+      "sections": []
+    },
+    {
+      "name": "Costo di esecuzione delle interrogazioni e loro ottimizzazione di Interrogazioni",
+      "sections": []
+    },
+    {
+      "name": "Utilizzo di un DBMS gratuito: MySQL",
+      "sections": []
+    }
+  ],
+  "books": "Sono disponibili diversi libri di testo sulle basi di dati relazionali. A scopo indicativo, per il corso si segnalano i seguenti:\"Database Management Systems, 3rd Edition\", di Raghu Ramakrishnan e Johannes GehrkeSistemi di basi di dati\", 7.ma edizione, di Ramez Elmasri e Shamkant NavatheIn caso di problemi nel reperire i testi, lo studente è pregato di mettersi in contatto con i docenti del corso.",
+  "learningGoals": "I dati ormai pervadono il nostro mondo. Quasi tutte le attività umane, ad oggi, producono dati o necessitano di accedere ai dati. In tal senso, sono quindi necessarie soluzioni che permettano la memorizzazione, il mantenimento, la ricerca, e l'estrazione di grandi quantità di dati, in modo efficacie ed efficiente. I sistemi di gestione dati si occupano proprio di questo. L'obiettivo di questo corso è di introdurre agli studenti i concetti fondamentali della gestione dei dati, di impartire i buoni principi di progettazione delle basi di dati, di permettere agli studenti di acquisire le competenze di costruire interrogazioni complesse, e permettere loro di identificare e risolvere problemi relativi alle performance in contesti reali. Il corso si focalizzerà sulle basi di dati relazionali, in virtù del fatto che il modello relazionale costituisce, attualmente, le fondamenta della maggior parte dei sistemi di gestione dati utilizzati in ambito industriale. Concepito ormai più di 30 anni fa, il modello relazionale è il modello di dati più studiato, e vanta il maggior numero di strumenti commerciali attualmente attivi sul mercato.",
+  "methods": "Il corso consiste principalmente di lezioni frontali ed esercitazioni. In particolare: i principali concetti teorici verranno presentati dal docente tramite l'utilizzo di slide o la lavagna. Durante e dopo la lezione, il docente risponderà alle domande degli studenti, e verrà discusso il materiale presentato. le esercitazioni in aula hanno l'obiettivo di evidenziare come i concetti teorici acquisiti vadano utilizzati in un contesto pratico. Durante queste lezioni, il docente mostrerà anche alcune tecniche necessarie ad una migliore applicazione dei concetti teorici. Dagli studenti ci si aspetta che il materiale presentato venga studiato di volta in volta, utilizzando le slide e i libri di testo consigliati. Gli studenti dovrebbero anche cercare di risolvere alcuni degli esercizi proposti dal libro.Il corso prevede anche l'assegnazione di alcuni elaborati che andranno svolti dagli studenti fuori dall'orario delle lezioni, e il cui svolgimento andrà consegnato entro specifiche date. L'obiettivo degli elaborati è quello di permettere allo studente di mettere in pratica i concetti acquisiti. Ad esclusione delle lezioni, il mezzo di comunicazione principale (e ufficiale) tra il docente e gli studenti è il forum dedicato al corso. Verrà usato a tale scopo il forum universitario (Didattica Online) o un'apposita classe creata su Google Classroom. Ci si aspetta che gli studenti seguano diligentemente le attività e gli eventi svolti sul forum. Sarà lì che il materiale didattico, gli elaborati e gli annunci verranno pubblicati.",
+  "examDetails": "La valutazione finale è basata su un esame scritto che coprirà tutti i principali argomenti trattati bel corso. A meno di difficoltà tecniche, la prova si terrà in aula informatica e sarà basata su una serie di domande a risposta multipla o aperte.Per facilitare lo studio e l'acquisizione di competenze, il docente svolgerà due prove intermedia così organizzate:la prima, indicativamente all'inizio di novembre, che coprirà le parti di progettazione e di modello relazionale / SQL;la seconda, indicativamente nell'ultima settimana di lezione a dicembre, che coprirà la normalizzazione, gli indici e il costo delle interrogazioni.Ogni prova sarà valutata in 30/30, per un massimo di 32 punti ciascuna.Lo studente potrà scegliere tra due opzioni:accettare come voto finale la media delle due prove intermedie (se la media è uguale o superiore a 31 il voto finale sarà di 30/30 e lode);sostenere l'esame in una delle sessioni previste dal calendario accademico (unica opzione per chi non avesse svolto alcuna o una delle prove intermedie). L'esame sarà suddiviso in due parti (analoghe a quelle delle prove intermedie), per cui chi avesse sostenuto solo una prova intermedia può decidere di sostenere solo la parte mancante.Ogniqualvolta uno studente parteciperà ad un esame scritto, il voto ottenuto al precedente scritto (o nelle prove intermedie) non sarà più valido, a meno che lo studente non decida di ritirarsi durante lo svolgimento dell'esame."
+}

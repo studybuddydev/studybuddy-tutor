@@ -28,6 +28,14 @@ export interface Calendar {
     events: Event[];
 }
 
+export interface CourseInfo {
+    name: string;
+    chapters: string[];
+    books: string;
+    examDetails: string;
+    learningGoals: string;
+    methods: string;
+}
 
 
 export type MyContext = Context & ConversationFlavor & SessionFlavor<SessionData>;

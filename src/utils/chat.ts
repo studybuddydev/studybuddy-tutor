@@ -6,7 +6,7 @@ import fs from 'fs'
 import axios from 'axios'
 import sharp from 'sharp'
 import { exec } from 'child_process';
-
+import { CourseInfo } from './types'
 
 import puppeteer, { Page } from 'puppeteer';
 import { InputFile } from 'grammy'
@@ -48,8 +48,13 @@ export async function handleMessage(ctx: MyContext) {
     const msg = ctx.message?.text as string
     if (msg.startsWith('/')) return
 
+    if (msg.startsWith('a')) {
+        await getSyllabusExams()
+        return
+    }
+
     if (msg.startsWith('https://unitn.coursecatalogue')) {
-        await scrapeSyllabus(ctx)
+        await scrapeSyllabus('ctx')
         return
     }
 
@@ -88,7 +93,7 @@ export async function handleVoice(ctx: MyContext) {
     const file = await ctx.getFile()
     const filepath = fileUrl + file.file_path
 
-    if (!ctx.session.isAdmin) return
+    if (!ctx.session.isTester) return
 
     if (!fileUrl) {
         ctx.reply('non posso scaricare il file')
@@ -124,11 +129,12 @@ export async function handleVoice(ctx: MyContext) {
     console.log(transcription.text)
 
 
-    const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text.  add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian";
+    const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text.  add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian"
+    const brainstormingPrompt = "As an experienced researcher, you are asked to provide a summary of the  brainstorming session including the main ideas and concept, then add 10 potential ideas and help to define the most interesting ones that the users provided, reply in the same language the users talks"
     const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo-0125",
         messages: [
-            { role: "system", content: systemPrompt },
+            { role: "system", content: brainstormingPrompt },
             { role: "user", content: transcription.text },
         ],
     });
@@ -153,7 +159,6 @@ export async function handleVoice(ctx: MyContext) {
 
     //ctx.reply('non posso gestire messaggi vocali')
 }
-
 
 
 //handle document
@@ -249,22 +254,67 @@ export async function handlePhoto(ctx: MyContext) {
 
 }
 
-interface CourseInfo {
-    name: string;
-    chapters: string[];
-    books: string;
-    examDetails: string;
-    learningGoals: string;
-    methods: string;
+
+async function getSyllabusExams(){
+
+    const urlEsami = 'https://unitn.coursecatalogue.cineca.it/corsi/2023/10114/insegnamenti/9999'
+    const browser = await puppeteer.launch();
+    const page: Page = await browser.newPage();
+    await page.goto(urlEsami, { waitUntil: 'networkidle0' }); // Replace with your target web app URL
+
+    await page.waitForSelector('app-root', { timeout: 5000 });
+
+    //print page content 
+    const content = await page.content()
+
+    await page.waitForSelector('card-insegnamento'); // Wait for the presence of the exam cards
+
+    // Extract exam information
+    const exams = await page.evaluate(() => {
+        const examElements = Array.from(document.querySelectorAll('card-insegnamento'));
+        return examElements.map(examElement => {
+            const nameElement = examElement.querySelector('.card-insegnamento-header');
+            const creditsElement = examElement.querySelector('.card-insegnamento-footer .card-insegnamento-cfu');
+            const hoursElement = examElement.querySelector('.card-insegnamento-footer .card-insegnamento-ore');
+            const urlElement = examElement.querySelector('.card-insegnamento-header a')?.getAttribute('href');
+
+            // Check if elements are not null before accessing properties
+            const name = nameElement ? nameElement.textContent?.trim() : '';
+            const credits = creditsElement ? creditsElement.textContent?.trim() : '';
+            const hours = hoursElement ? hoursElement.textContent?.trim() : '';
+            const url = urlElement ? urlElement : '';
+
+            return {
+                name,
+                credits,
+                hours,
+                url
+            };
+        });
+    });
+
+    // Print exam information
+    exams.forEach(exam => {
+        console.log("Name:", exam.name);
+        console.log("Credits:", exam.credits);
+        console.log("Hours:", exam.url);
+        console.log();
+    });
+
+    const url = 'https://unitn.coursecatalogue.cineca.it' + exams[2].url
+
+    scrapeSyllabus(url)
+
+
 }
 
 
 
 // get url of a syllabus from unitn course catalogue and scrape it 
-async function scrapeSyllabus(ctx: MyContext): Promise<void> {
+async function scrapeSyllabus(url: string): Promise<void> {
     const browser = await puppeteer.launch();
-    const page: Page = await browser.newPage();
-    const url = ctx.message?.text as string
+    const page: Page = await browser.newPage(); 
+    //const url = ctx.message?.text as string
     await page.goto(url, { waitUntil: 'networkidle0' }); // Replace with your target web app URL
 
     await page.waitForSelector('app-root', { timeout: 5000 });
@@ -279,9 +329,10 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
     console.log(`Title: ${title}`);
 
     await page.waitForSelector('.accordion');
+    let infoElements: CourseInfo = { name: '', chapters: [], books: '', examDetails: '', learningGoals: '', methods: '' };
 
-    // unico modo di farlo funzionare, ho provato a tirare fuori sta funzione per pulire un po' il codice ma non funziona
-    const infoElements = await page.$$eval('.accordion > dt, .accordion > dd', (elements: Element[]) => {
+        // unico modo di farlo funzionare, ho provato a tirare fuori sta funzione per pulire un po' il codice ma non funziona
+    infoElements = await page.$$eval('.accordion > dt, .accordion > dd', (elements: Element[]) => {
         let currentGroup: Partial<CourseInfo> = {};
 
         for (const element of elements) {
@@ -318,19 +369,25 @@ async function scrapeSyllabus(ctx: MyContext): Promise<void> {
 
     console.log('Information:', infoElements);
 
+    console.log(infoElements)
+
     //save to a json file 
 
 
 
     await browser.close();
 
-    const processedSyllabus = await processSyllabus(infoElements)
-    const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(processedSyllabus, null, 2)), processedSyllabus?.name + '.json')
+   const processedSyllabus = await processSyllabus(infoElements)
+   const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(processedSyllabus, null, 2)), processedSyllabus?.name + '.json')
 
     const fs = require('fs');
     fs.writeFileSync('esame.json', JSON.stringify(infoElements, null, 2));
 
-    ctx.replyWithDocument(inputfile)
+
+
+
+
+    //ctx.replyWithDocument(inputfile)
 
 
 
@@ -364,6 +421,8 @@ async function processSyllabus(syllabus: CourseInfo) {
 
     return syllabus
 }
+
+
 
 // const filesyl = JSON.parse(fs.readFileSync('esame.json', 'utf8')) as CourseInfo
 // processSyllabus(filesyl)

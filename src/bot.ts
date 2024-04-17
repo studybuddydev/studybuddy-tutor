@@ -6,9 +6,11 @@ import 'dotenv/config'
 
 import { rootMenu } from "./Menu/startMenu";
 import { todoMenu } from "./Menu/todoMenu";
+import { feedbackMenu } from "./Menu/feedbackMenu";
+
 import { MyContext } from "./utils/types";
 import { sessionMiddleware } from "./utils/session";
-import { dailyEvents, previewEvents, reviewEvents,  } from './utils/notification';
+import { dailyEvents, previewEvents, reviewEvents } from './utils/notification';
 import * as cmd from './utils/commands'
 import * as chat from './utils/chat'
 import * as cnv from './utils/conversations';
@@ -40,11 +42,14 @@ async function main(){
   bot.use(createConversation(cnv.setUpBot));
   bot.use(createConversation(cnv.setRole));
   bot.use(createConversation(cnv.addTodo));
+  //bot.use(createConversation(cnv.reportBug));
 
   //menus
   logger.debug('loading menus')
   bot.use(rootMenu);
   bot.use(todoMenu);
+  bot.use(feedbackMenu);
+
 
   //notification handlers
   logger.debug('loading notification handlers')
@@ -72,6 +77,8 @@ async function main(){
   bot.command('help', cmd.helpCommand);
   bot.command('settings', cmd.settingsCommand);
   bot.command('admin', cmd.adminCommand);
+  bot.command('bug', cmd.bugCommand);
+
 
   
 

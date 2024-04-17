@@ -2,10 +2,11 @@
 import {  Keyboard } from "grammy";
 import { getEvents } from "./calendarhelp";
 import { MyContext, MyConversation, ReviewLesson, type Event, type Calendar } from "./types";
-import { settingsMenu } from './bin/menu';
+import { settingsMenu } from '../Menu/settingsMenu';
 import fs from 'fs';
 import 'dotenv/config'
 import logger from 'euberlog';
+import {getFeedBacks, addFeedback} from './notion';
 
 
 
@@ -102,3 +103,11 @@ export async function addTodo (conversation: MyConversation, ctx: MyContext) {
     conversation.session.todo.push(todo);
     await ctx.reply('aggiunto alla lista');
 }
+
+export async function reportBug(conversation: MyConversation, ctx: MyContext) {
+    await ctx.reply('qual è il bug?');
+    const bug = await conversation.form.text();
+
+    //await addFeedback({ title: bug, type: 'bug' });
+    await ctx.reply('grazie per il report, lo invieremo al team');
+} 

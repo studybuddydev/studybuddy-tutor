@@ -3,12 +3,15 @@ import { getDailyEvents, getNextEventsMsg, refreshCalendar } from './calendarhel
 import { dailyJobs, previewJobs, reviewJobs } from './notification'
 import logging from 'euberlog'
 import axios from 'axios';
-import { settingsMenu, todoMenu } from './bin/menu';
-import { calendarMenu, rootMenu, notificationMenu, chatMenu} from '../Menu/startMenu';
+import { calendarMenu, rootMenu, notificationMenu, chatMenu } from '../Menu/startMenu';
+import { feedbackMenu } from '../Menu/feedbackMenu';
+import { todoMenu } from '../Menu/todoMenu';
+import { settingsMenu } from '../Menu/settingsMenu';
 import { openai } from './ai';
 import logger from 'euberlog';
 import * as schedule from 'node-schedule';
 import fs from 'fs';
+import {getFeedBacks, addFeedback} from './notion';
 
 
 
@@ -28,6 +31,21 @@ export const myCommands = [
     { command: "image", description: "generate image from prompt" },
     { command: "daily", description: "get daily events from the clandar" },
   ]
+
+
+export async function bugCommand(ctx: MyContext) {
+    if(ctx.message?.text != '/bug' && ctx.message?.text != undefined) {
+        
+        const text = ctx.message.text.replace('/bug', '').trim()
+        const feedback = {
+            title: text,
+            type: 'bug'
+        }
+
+        await addFeedback(feedback)
+
+    }
+}
 
 
 //start command
