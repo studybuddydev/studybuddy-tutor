@@ -29,7 +29,7 @@ async function editMsgListNotification(ctx: MyContext) {
 
 
     try {
-        await ctx.editMessageText(notificationMsg, { reply_markup: rootMenu, parse_mode: 'MarkdownV2' });
+        await ctx.editMessageText(notificationMsg, { reply_markup: rootMenu, parse_mode: 'MarkdownV2'});
 
     } catch (e) {
         logger.warning(e as string);
@@ -43,6 +43,8 @@ async function editMsgCalendar(ctx: MyContext) {
     if (!ctx.session.calendar) return
 
     const msg = getNextEventsMsg(ctx.session.calendar);
+
+    console.log(msg)
 
     try {
         await ctx.editMessageText(msg, {parse_mode: 'MarkdownV2' });

@@ -27,6 +27,7 @@
     "@grammyjs/conversations": "^1.2.0",
     "@grammyjs/files": "^1.1.0",
     "@grammyjs/menu": "^1.2.1",
+    "@grammyjs/parse-mode": "^1.9.0",
     "@grammyjs/storage-file": "^2.4.2",
     "@notionhq/client": "^2.2.15",
     "axios": "^1.6.8",

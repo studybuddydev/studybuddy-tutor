@@ -7,6 +7,9 @@ import {
   } from "@grammyjs/conversations";
 import { SessionData } from './session';
 
+import { bold, fmt, hydrateReply, italic, link } from "@grammyjs/parse-mode";
+import type { ParseModeFlavor } from "@grammyjs/parse-mode";
+
 export interface ReviewLesson {
     attendance: boolean;
     title: string;
@@ -38,5 +41,5 @@ export interface CourseInfo {
 }
 
 
-export type MyContext = Context & ConversationFlavor & SessionFlavor<SessionData>;
+export type MyContext = Context & ConversationFlavor & SessionFlavor<SessionData> //& ParseModeFlavor;
 export type MyConversation = Conversation<MyContext>;
