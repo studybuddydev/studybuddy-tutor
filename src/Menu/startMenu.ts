@@ -47,8 +47,9 @@ async function editMsgCalendar(ctx: MyContext) {
     console.log(msg)
 
     try {
-        await ctx.editMessageText(msg, {parse_mode: 'MarkdownV2' });
+        await ctx.editMessageText(msg );
     } catch (e) {
+        logger.warning('il problema è nel editMsgCalendar');
         logger.warning(e as string);
     }
 }

@@ -45,7 +45,7 @@ async function editMsgCalendar(ctx: MyContext) {
   const msg = ctx.session.calendar ? 'il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi' : 'non hai un calendario'
 
   try {
-      await ctx.editMessageText(msg + '\n' + nextEvents);
+      await ctx.editMessageText(msg + '\n' + nextEvents, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
   } catch (e) {
       logger.warning(e as string);
   }
@@ -120,7 +120,7 @@ const calendarMenu = new Menu<MyContext>("calendar-menu")
       if (!ctx.session.calendar) return
       const nextEvents = getNextEventsMsg(ctx.session.calendar);
       try {
-      await ctx.editMessageText('il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi e ' + nextEvents)
+      await ctx.editMessageText('il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi e ' + nextEvents,  { parse_mode: 'MarkdownV2'})
       }catch (e) { logger.error(e as string)}
       //await ctx.reply('il calendario ' + ctx.session.calendar?.title + ' ha ' + ctx.session.calendar?.events.length + ' eventi ')
 
@@ -177,7 +177,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
         msg += '\n' + date
       }
       try {
-        await ctx.editMessageText(msg);
+        await ctx.editMessageText(msg, { reply_markup: notificationSettings, parse_mode: 'MarkdownV2'});
       }
       catch (e) {
         logger.error(e as string)
@@ -187,7 +187,7 @@ const notificationSettings = new Menu<MyContext>("notification-menu")
 
       try {
         const welcomeText = fs.readFileSync('./src/messages/welcome.md', 'utf8');
-        await ctx.editMessageText(welcomeText, { reply_markup: settingsMenu, parse_mode: 'MarkdownV2'});
+        await ctx.editMessageText(welcomeText, {  parse_mode: 'MarkdownV2'});
       }catch (e) { logger.error(e as string)}
         
   

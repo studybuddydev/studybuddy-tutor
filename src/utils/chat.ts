@@ -42,39 +42,44 @@ function compressAudio(): Promise<void> {
 
 // handle message 
 export async function handleMessage(ctx: MyContext) {
-    //is is a voice message 
+    //it is not a text
     if (!ctx.message?.text) return
 
     const msg = ctx.message?.text as string
+
+    // its a command 
     if (msg.startsWith('/')) return
 
-    if (msg.startsWith('a')) {
+    // a is for my test scraping the syllabus list TEST FEATURE
+    if (msg.startsWith('a')) {  
         const exams = await getSyllabusExams()
         ctx.reply(JSON.stringify(exams[0]))
         return
     }
 
+    // if it is a link to the syllabus scrape it
     if (msg.startsWith('https://unitn.coursecatalogue')) {
         await scrapeSyllabus('ctx')
         return
     }
 
+    //it is a text message, let's check if they have the rights to chat
     if (ctx.session.wantsChat) {
 
         const cat = getCatClient(`${ctx.from?.id}`)
-
+        // connect to the cat 
         cat?.onConnected(() => {
             logger.debug('sending message to cat')
             cat?.send(msg)
         })
 
-        cat?.send(msg)
+        cat?.send(msg)  // send the message to the cat
 
 
-        ctx.replyWithChatAction('typing')
+        ctx.replyWithChatAction('typing') // show typing action
 
 
-
+        // listen to the response from the cat and reply to the user
         cat?.onMessage(res => {
 
             if (res.type === 'chat') {
@@ -106,8 +111,6 @@ export async function handleVoice(ctx: MyContext) {
     const tempPath = 'data/audio.ogg'
     const tempPathCompressed = 'data/audiocompressed.ogg'
     const writer = fs.createWriteStream(tempPath)
-
-
 
 
 
@@ -199,12 +202,14 @@ export async function handleDocument(ctx: MyContext) {
 
 //handle photo
 export async function handlePhoto(ctx: MyContext) {
-    ctx.reply('grazie, ora faccio le mie magie')
 
     if (!ctx.session.isAdmin) return
 
+    ctx.reply('grazie, ora faccio le mie magie')
 
     const photo = await ctx.getFile()
+    const caption = ctx.message?.caption ?? 'spiega la foto'
+    console.log('la caption è ', caption)
     if (!photo) {
         ctx.reply("Non hai inviato una foto");
         return;
@@ -224,12 +229,12 @@ export async function handlePhoto(ctx: MyContext) {
 
 
     const response = await openai.chat.completions.create({
-        model: "gpt-4-vision-preview",
+        model: "gpt-4o",
         messages: [
             {
                 role: "user",
                 content: [
-                    { type: "text", text: "spiega l'immagine" },
+                    { type: "text", text: caption },
                     {
                         type: "image_url",
                         image_url: {
@@ -241,18 +246,25 @@ export async function handlePhoto(ctx: MyContext) {
             },
         ],
     })
-    ctx.reply(JSON.stringify(response.choices[0].message));
-    //ctx.reply(JSON.stringify(response.choices[1].message));
+    //ctx.reply(JSON.stringify(response.choices[0].message));
+
+    sendGeneratedText(ctx, response.choices[0].message.content ?? "")
 
 
-    console.log(response.choices[0]);
+    // console.log(response.choices[0]);
 
 
-    console.log(response.choices);
+    // console.log(response.choices);
 
+}
 
-
-
+function sendGeneratedText(ctx: MyContext, text: string) {
+    if (text.length < 4096) {
+        ctx.reply(text)
+    } else {
+        const inputfile: InputFile = new InputFile(Buffer.from(text), 'output.txt')
+        ctx.replyWithDocument(inputfile)
+    }
 }
 
 
