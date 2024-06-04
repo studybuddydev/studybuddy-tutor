@@ -7,6 +7,7 @@ import axios from 'axios'
 import sharp from 'sharp'
 import { exec } from 'child_process';
 import { CourseInfo } from './types'
+import * as ai from './ai'
 
 import puppeteer, { Page } from 'puppeteer';
 import { InputFile } from 'grammy'
@@ -127,36 +128,29 @@ export async function handleVoice(ctx: MyContext) {
 
     await compressAudio()
 
-
-    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPathCompressed), model: "whisper-1", language: "it" });
+    // here it happens the ai stuff
+    const transcription = await openai.audio.transcriptions.create({ file: fs.createReadStream(tempPathCompressed), model: "whisper-1" });
 
     console.log(transcription.text)
 
+    
 
-    const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text.  add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian"
-    const brainstormingPrompt = "As an experienced researcher, you are asked to provide a summary of the  brainstorming session including the main ideas and concept, then add 10 potential ideas and help to define the most interesting ones that the users provided, reply in the same language the users talks"
-    const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo-0125",
-        messages: [
-            { role: "system", content: brainstormingPrompt },
-            { role: "user", content: transcription.text },
-        ],
-    });
+    const correctedText = await ai.postprocessTranscription(transcription.text)
+
+
+
     // if it is too long send it as a file
     if (transcription.text.length < 4096) {
-        ctx.reply(JSON.stringify(transcription.text));
-
-        const correctedText = completion.choices[0].message.content
-        ctx.reply(JSON.stringify(correctedText))
+        ctx.reply(JSON.stringify(transcription.text).replace(/\\n/g, '\n'));
+        ctx.reply(JSON.stringify(correctedText).replace(/\\n/g, '\n'));
     } else 
     {   //sent it as a file 
 
-        const inputfile: InputFile = new InputFile(Buffer.from(JSON.stringify(transcription.text, null, 2)), 'transcription.txt')
+        const inputfile: InputFile = new InputFile(Buffer.from(JSON.parse(JSON.stringify(transcription.text, null, 2))), 'transcription.txt')
 
         ctx.replyWithDocument(inputfile)
 
-        const correctedText = completion.choices[0].message.content
-        const inputfile2: InputFile = new InputFile(Buffer.from(JSON.stringify(correctedText, null, 2)), 'corrected.txt')
+        const inputfile2: InputFile = new InputFile(Buffer.from(JSON.parse(JSON.stringify(correctedText, null, 2))), 'corrected.txt')
 
         ctx.replyWithDocument(inputfile2) 
     }

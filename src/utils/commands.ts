@@ -7,7 +7,7 @@ import { calendarMenu, rootMenu, notificationMenu, chatMenu } from '../Menu/star
 import { feedbackMenu } from '../Menu/feedbackMenu';
 import { todoMenu } from '../Menu/todoMenu';
 import { settingsMenu } from '../Menu/settingsMenu';
-import { openai } from './ai';
+import * as ai from './ai';
 import logger from 'euberlog';
 import * as schedule from 'node-schedule';
 import fs from 'fs';
@@ -186,15 +186,9 @@ export async function imageCommand(ctx: MyContext) {
     if (user_prompt && ctx.session.isAdmin) {
         ctx.reply('spending 4 cent to generate this image, please wait...')
 
-        const response = await openai.images.generate({
-            model: "dall-e-3",
-            prompt: user_prompt.toString(), // Convert user_prompt to string
-            n: 1,
-            size: "1024x1024",
-        });
-        let image_url = response as any;
+        let image_url = await ai.generateImage(user_prompt.toString());
 
-        ctx.reply(image_url.data[0].url);
+        ctx.reply(image_url);
     } else {
         ctx.reply('please insert a prompt after /image, or you may not have the rights to do so')
     }
