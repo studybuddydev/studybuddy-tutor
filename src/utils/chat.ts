@@ -219,30 +219,12 @@ export async function handlePhoto(ctx: MyContext) {
     // const resizedImage = await sharp(photoUrl).resize(200, 200).toBuffer()
 
 
+    const response = await  ai.readImage(photoUrl, caption)
 
 
-
-    const response = await openai.chat.completions.create({
-        model: "gpt-4o",
-        messages: [
-            {
-                role: "user",
-                content: [
-                    { type: "text", text: caption },
-                    {
-                        type: "image_url",
-                        image_url: {
-                            "url": photoUrl,
-                            "detail": "low"
-                        },
-                    },
-                ],
-            },
-        ],
-    })
     //ctx.reply(JSON.stringify(response.choices[0].message));
 
-    sendGeneratedText(ctx, response.choices[0].message.content ?? "")
+    sendGeneratedText(ctx, response)
 
 
     // console.log(response.choices[0]);
@@ -254,7 +236,10 @@ export async function handlePhoto(ctx: MyContext) {
 
 function sendGeneratedText(ctx: MyContext, text: string) {
     if (text.length < 4096) {
-        ctx.reply(text)
+        //escape markdown
+        text = text.replace(/([_.*[\]()~`>#\+=\-|{}.!])/g, '\\$1');
+
+        ctx.reply(text, { parse_mode: 'MarkdownV2' })
     } else {
         const inputfile: InputFile = new InputFile(Buffer.from(text), 'output.txt')
         ctx.replyWithDocument(inputfile)

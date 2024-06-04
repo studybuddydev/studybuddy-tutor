@@ -65,3 +65,27 @@ export async function postprocessTranscription(transcription:string){
 
 }
 
+
+export async function readImage(photoUrl: string, caption: string){
+
+  const response = await openai.chat.completions.create({
+    model: "gpt-4o",
+    messages: [
+        {
+            role: "user",
+            content: [
+                { type: "text", text: caption },
+                {
+                    type: "image_url",
+                    image_url: {
+                        "url": photoUrl,
+                        "detail": "low"
+                    },
+                },
+            ],
+        },
+    ],
+})
+  
+    return response.choices[0].message.content ?? "";
+}
