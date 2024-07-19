@@ -52,7 +52,7 @@ export async function postprocessTranscription(transcription:string){
   const systemPrompt = "You are a helpful StudyBuddy for university students. Your task is to correct any spelling discrepancies in the transcribed text.  add necessary punctuation such as periods, commas, and capitalization, and use only the context provided. user may talk in italian"
   const brainstormingPrompt = "write this but in rhymes"
   const completion = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo-0125",
+      model: "gpt-4o-mini",
       messages: [
           { role: "system", content: brainstormingPrompt },
           { role: "user", content: transcription },
@@ -69,7 +69,7 @@ export async function postprocessTranscription(transcription:string){
 export async function readImage(photoUrl: string, caption: string){
 
   const response = await openai.chat.completions.create({
-    model: "gpt-4o",
+    model: "gpt-4o-mini",
     messages: [
         {
             role: "user",

@@ -71,6 +71,7 @@ export async function getSyllabusExams(){
 
 
 
+
 // get url of a syllabus from unitn course catalogue and scrape it 
 export async function scrapeSyllabus(url: string): Promise<void> {
     const browser = await puppeteer.launch();

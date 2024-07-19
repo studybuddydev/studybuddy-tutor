@@ -1,5 +1,5 @@
 # StudyBuddy Tutor
-The porpuse of this bot is helping university students through their journy in the university, giving help in managing time, studying and more.
+The porpuse of this bot is helping university students through their journey in the university, giving help in managing time, studying and more.
 
 This bot can do many things that can be devided in two categories, AI and non-AI.
 
@@ -15,8 +15,19 @@ uses dall-e to generate images, you can find this in the ai.ts, usage /image <te
 
 ### understand images 
 you can send a picture with a caption and the bot will try to understand the image and give you a response, you can find this in the ai.ts
+ 
 
 ### transcript audio and postprocess it 
 you can send an audio file and the bot will transcript it and postprocess it, you can find this in the ai.ts and chat.ts, if the file is long it will compress it and will send the text in a separate file instead of a message 
 
 
+### ingest documents [in progress]
+
+you can send a document and the bot will ingest it and it can be part of your study material, you can find this in the ai.ts
+
+
+## non-AI
+
+### calendar 
+
+### todos
